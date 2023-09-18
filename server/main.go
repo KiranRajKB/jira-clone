@@ -19,7 +19,9 @@ var db *sql.DB
 var jwtKey = []byte("your-secret-key")
 var contextKeyUsername = "username"
 
+const TOKEN_EXPIRY_IN_MINUTES = 10
 const adminUsername = "admin"
+const PORT = "8081"
 
 func main() {
 	initDB()
@@ -27,25 +29,25 @@ func main() {
 	router := gin.Default()
 	router.Use(corsMiddleware())
 
-	router.POST("/login", loginUser)
+	router.POST("/login", checkActiveUserMiddleWare(), loginUser)
 
 	router.Use(JWTMiddleware())
 
-	router.POST("/create_user", createUser)
-	router.POST("/bulk_create_users", bulkCreateUsers)
+	router.POST("/create_user", checkAdminMiddleWare(), createUser)
+	router.POST("/bulk_create_users", checkAdminMiddleWare(), bulkCreateUsers)
 	router.DELETE("/delete_user/:username", checkAdminMiddleWare(), deleteUser)
 	router.PUT("/deactivate_user/:username", checkAdminMiddleWare(), deactivateUser)
 	router.PUT("/activate_user/:username", checkAdminMiddleWare(), activateUser)
+
 	router.GET("/projects", getProjectsByUsername)
 	router.GET("/people", getAllPeople)
 	router.GET("/person", getPersonByUsername)
 	router.PUT("/edit_profile", editProfile)
 
 	router.GET("/can_create_project", canCreateProject)
-	router.GET("project/:project_id/is_project_owner", isProjectOwner)
-
 	router.POST("/create_project", checkCreateProjectAccessMiddleWare(), createProject)
 
+	router.GET("project/:project_id/is_project_owner", isProjectOwner)
 	router.DELETE("/project/:project_id/delete_project", checkProjectOwnerMiddleWare(), deleteProject)
 	router.POST("/project/:project_id/add_project_role", checkProjectOwnerMiddleWare(), AddProjectRole)
 	router.POST("/project/:project_id/add_project_people", checkProjectOwnerMiddleWare(), addProjectPeople)
@@ -54,17 +56,17 @@ func main() {
 	router.GET("/project/:project_id/can_delete_project", CheckProjectAccessMiddleWare(), canDeleteProject)
 	router.GET("/project/:project_id/details", CheckProjectAccessMiddleWare(), getProjectDetails)
 	router.GET("/project/:project_id/issues", CheckProjectAccessMiddleWare(), getProjectIssues)
-	router.GET("/project/:project_id/assignees", CheckProjectAccessMiddleWare(), GetAssignees)
+	router.GET("/project/:project_id/assignees", CheckProjectAccessMiddleWare(), GetAssignableUsers) // can change route
 	router.GET("/project/:project_id/people", CheckProjectAccessMiddleWare(), getProjectPeople)
 	router.GET("/project/:project_id/roles", CheckProjectAccessMiddleWare(), getProjectRoles)
 	router.GET("/project/:project_id/role_permissions", CheckProjectAccessMiddleWare(), getRolePermissions)
 
 	router.POST("/project/:project_id/add_issue", CheckCreateIssueAccessMiddleWare(), addIssue)
 	router.POST("/project/:project_id/bulk_add_issues", CheckCreateIssueAccessMiddleWare(), bulkAddIssues)
-	router.DELETE("/delete_issue/:issue_id", CheckDeleteIssueAccessMiddleware(), deleteIssue)
-	router.PUT("/update-issue", CheckEditIssueAccessMiddleware(), editIssue)
+	router.PUT("/project/:project_id/edit_issue", CheckEditIssueAccessMiddleware(), editIssue)                    // changed route (change in frontend)
+	router.DELETE("/project/:project_id/delete_issue/:issue_id", CheckDeleteIssueAccessMiddleware(), deleteIssue) // changed route (change in frontend)
 
-	router.Run(":8081")
+	router.Run(PORT)
 }
 
 func corsMiddleware() gin.HandlerFunc {
@@ -134,16 +136,17 @@ func JWTMiddleware() gin.HandlerFunc {
 	}
 }
 
+// checked
 func checkAdminMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username, ok := c.Request.Context().Value(contextKeyUsername).(string)
 		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve owner_username from context"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve username from context"})
 			c.Abort()
 			return
 		}
 
-		if username != "admin" {
+		if username != adminUsername {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Only admin can perform this action"})
 			c.Abort()
 			return
@@ -153,19 +156,47 @@ func checkAdminMiddleWare() gin.HandlerFunc {
 	}
 }
 
+// checked
+func checkActiveUserMiddleWare() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		username, ok := c.Request.Context().Value(contextKeyUsername).(string)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve username from context"})
+			c.Abort()
+			return
+		}
+
+		var isActive bool
+		row := db.QueryRow("SELECT active FROM users WHERE username = $1", username)
+		if err := row.Scan(&isActive); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve active status from database"})
+			c.Abort()
+			return
+		}
+
+		if !isActive {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User deactivated"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// checked
 func checkCreateProjectAccessMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Retrieve owner_username from context
-		ownerUsername, ok := c.Request.Context().Value(contextKeyUsername).(string)
+		username, ok := c.Request.Context().Value(contextKeyUsername).(string)
 		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve owner_username from context"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve username from context"})
 			c.Abort()
 			return
 		}
 
 		// Query the database to check if the user can create a project
 		var createProject bool
-		err := db.QueryRow("SELECT can_create_project FROM Users WHERE username = $1", ownerUsername).Scan(&createProject)
+		err := db.QueryRow("SELECT can_create_project FROM Users WHERE username = $1", username).Scan(&createProject)
 		if err != nil {
 			fmt.Println("Database query error:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database query error"})
@@ -173,19 +204,18 @@ func checkCreateProjectAccessMiddleWare() gin.HandlerFunc {
 			return
 		}
 
-		// Check if the user has permission to create projects
 		if !createProject {
 			c.JSON(http.StatusForbidden, gin.H{"error": "User does not have permission to create projects"})
 			c.Abort()
 			return
 		}
 
-		// If all checks pass, continue with the next middleware or route handler
 		c.Next()
 	}
 }
 
-func CheckProjectAccessMiddleWare() gin.HandlerFunc { //check
+// checked (must check in frontend)
+func CheckProjectAccessMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		projectID := c.Param("project_id")
 		username, ok := c.Request.Context().Value(contextKeyUsername).(string)
@@ -195,27 +225,26 @@ func CheckProjectAccessMiddleWare() gin.HandlerFunc { //check
 			return
 		}
 
-		query := `(SELECT 1 FROM project_user_role WHERE project_id = $1 AND username = $2)
-		UNION
-		(SELECT 1 FROM projects WHERE project_id = $1 AND owner_username = $2)`
+		query := "SELECT count(*) FROM project_user_role WHERE project_id = $1 AND username = $2"
 		var result int
 		err := db.QueryRow(query, projectID, username).Scan(&result)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
-				c.Abort()
-				return
-			}
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			c.Abort()
 			return
 		}
 
-		// User has access to the project, continue to the next handler
+		if result == 0 {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized access"})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }
 
+// checked (must check in frontend)
 func checkProjectOwnerMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		username, ok := c.Request.Context().Value(contextKeyUsername).(string)
@@ -227,7 +256,7 @@ func checkProjectOwnerMiddleWare() gin.HandlerFunc {
 		projectID := c.Param("project_id")
 
 		var exists bool
-		err := db.QueryRow("SELECT 1 FROM project_user_role WHERE project_id = $1 AND role_name = 'Owner' AND username = $2", projectID, username).Scan(&exists)
+		err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM project_user_role WHERE project_id = $1 AND role_name = 'Owner' AND username = $2)", projectID, username).Scan(&exists)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify permission"})
 			c.Abort()
@@ -244,6 +273,7 @@ func checkProjectOwnerMiddleWare() gin.HandlerFunc {
 	}
 }
 
+// checked
 func CheckCreateIssueAccessMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		projectID := c.Param("project_id")
@@ -271,6 +301,7 @@ func CheckCreateIssueAccessMiddleWare() gin.HandlerFunc {
 	}
 }
 
+// checked
 func CheckEditIssueAccessMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		projectID := c.Param("project_id")
@@ -298,6 +329,7 @@ func CheckEditIssueAccessMiddleware() gin.HandlerFunc {
 	}
 }
 
+// checked
 func CheckDeleteIssueAccessMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		projectID := c.Param("project_id")
@@ -325,13 +357,14 @@ func CheckDeleteIssueAccessMiddleware() gin.HandlerFunc {
 	}
 }
 
+// checked
 func deleteUser(c *gin.Context) {
 	username := c.Param("username")
 	if username == "admin" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete admin"})
 		return
 	}
-	fmt.Println(username)
+
 	_, err := db.Exec("DELETE FROM users WHERE username=$1", username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
@@ -341,13 +374,14 @@ func deleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
+// checked
 func deactivateUser(c *gin.Context) {
 	username := c.Param("username")
 	if username == "admin" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot deactivate admin"})
 		return
 	}
-	fmt.Println(username)
+
 	_, err := db.Exec("UPDATE users SET active = FALSE WHERE username=$1", username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to deactivate user"})
@@ -357,6 +391,7 @@ func deactivateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User deactivated successfully"})
 }
 
+// checked
 func activateUser(c *gin.Context) {
 	username := c.Param("username")
 	_, err := db.Exec("UPDATE users SET active = TRUE WHERE username=$1", username)
@@ -368,12 +403,11 @@ func activateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User activated successfully"})
 }
 
-func GetAssignees(c *gin.Context) {
-	// Get the project ID from the URL parameter
+// checked (returns all project users + bool (whether permission is present), filter in frontend)
+func GetAssignableUsers(c *gin.Context) {
 	projectID := c.Param("project_id")
 
-	// Define a struct to store the result
-	type Assignee struct {
+	type AssignableUser struct {
 		Username   string `json:"username"`
 		Assignable bool   `json:"assignable"`
 	}
@@ -387,69 +421,61 @@ func GetAssignees(c *gin.Context) {
 
 	rows, err := db.Query(query, projectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assignees"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assignable users"})
 		return
 	}
 	defer rows.Close()
 
-	var assignees []Assignee
+	var assignableUsers []AssignableUser
 	for rows.Next() {
-		var assignee Assignee
-		if err := rows.Scan(&assignee.Username, &assignee.Assignable); err != nil {
+		var assignableUser AssignableUser
+		if err := rows.Scan(&assignableUser.Username, &assignableUser.Assignable); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning database rows"})
 			return
 		}
-		assignees = append(assignees, assignee)
+		assignableUsers = append(assignableUsers, assignableUser)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"assignees": assignees})
+	c.JSON(http.StatusOK, gin.H{"assignees": assignableUsers})
 }
 
+// checked
 func addProjectPeople(c *gin.Context) {
-	// Define the structure for the form values
 	type AddProjectPeopleForm struct {
 		PersonUsername string `form:"person_username" binding:"required"`
 		PersonRole     string `form:"person_role" binding:"required"`
 	}
-	// Get the project ID from the URL params
 	projectID := c.Param("project_id")
 
-	// Parse the form data
 	var formData AddProjectPeopleForm
 	if err := c.ShouldBind(&formData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Insert the person and role into the project_user_role table
 	insertQuery := "INSERT INTO project_user_role (project_id, role_name, username) VALUES ($1, $2, $3)"
 	_, insertErr := db.Exec(insertQuery, projectID, formData.PersonRole, formData.PersonUsername)
 	if insertErr != nil {
 		fmt.Println("error : ", insertErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert project person and role"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
 		return
 	}
 
-	// Return a success response
 	c.JSON(http.StatusOK, gin.H{"message": "Person added to project with role"})
 }
 
+// checked
 func removeProjectPeople(c *gin.Context) {
 	projectID := c.Param("project_id")
 
-	// Define a struct for the request body
 	var request struct {
 		Username string `json:"username"`
 	}
 
-	// Bind the request body to the struct
 	if err := c.BindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Now you can access the username using request.Username
-	fmt.Println("USERNAME: ", request.Username)
 
 	if request.Username == adminUsername {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot remove admin"})
@@ -467,6 +493,7 @@ func removeProjectPeople(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User removed from project"})
 }
 
+// checked
 func isProjectOwner(c *gin.Context) {
 	projectID := c.Param("project_id")
 
@@ -486,26 +513,9 @@ func isProjectOwner(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"isProjectOwner": exists})
 }
 
+// checked
 func AddProjectRole(c *gin.Context) {
 	projectID := c.Param("project_id")
-
-	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve username from context"})
-		return
-	}
-	var ownerUsername string
-	err := db.QueryRow("SELECT owner_username FROM projects WHERE project_id = $1", projectID).Scan(&ownerUsername)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	canAddRole := ownerUsername == username
-	if !canAddRole {
-		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to add a project role to this project"})
-		return
-	}
 
 	type Role struct {
 		RoleName        string `json:"role_name" binding:"required"`
@@ -528,7 +538,7 @@ func AddProjectRole(c *gin.Context) {
         INSERT INTO Roles (role_name, project_id, create_issue, edit_issue, transition_issue, close_issue, delete_issue, assignable)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `
-	_, err = db.Exec(
+	_, err := db.Exec(
 		insertQuery,
 		role.RoleName,
 		projectID,
@@ -547,6 +557,7 @@ func AddProjectRole(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Role added successfully"})
 }
 
+// checked
 func canCreateProject(c *gin.Context) {
 	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
 	if !ok {
@@ -565,6 +576,7 @@ func canCreateProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"canCreateProject": canCreateProject})
 }
 
+// checked
 func editProfile(c *gin.Context) {
 	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
 	if !ok {
@@ -603,6 +615,7 @@ func editProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Profile updated successfully"})
 }
 
+// checked
 func deleteIssue(c *gin.Context) {
 	issueID := c.Param("issue_id")
 
@@ -617,15 +630,16 @@ func deleteIssue(c *gin.Context) {
 	}
 
 	// Also delete associated tags
-	_, err = db.Exec("DELETE FROM issue_tags WHERE issue_id = $1", issueID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	// _, err = db.Exec("DELETE FROM issue_tags WHERE issue_id = $1", issueID)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, gin.H{"message": "Issue deleted successfully"})
 }
 
+// checked
 func getRolePermissions(c *gin.Context) {
 	projectID := c.Param("project_id")
 	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
@@ -669,6 +683,7 @@ func getRolePermissions(c *gin.Context) {
 	c.JSON(http.StatusOK, permissions)
 }
 
+// checked (add transaction)
 func addIssue(c *gin.Context) {
 	projectID := c.Param("project_id")
 	type Issue struct {
@@ -687,12 +702,23 @@ func addIssue(c *gin.Context) {
 		return
 	}
 
+	// Check if assignee has asignable permission
+	permissions, err := getRolePermissionsHelper(projectID, newIssue.Assignee)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if !permissions.Assignable {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Assignee does not have assignable permission"})
+		return
+	}
+
 	// Insert the new issue into the database along with the provided issueID
 	insertIssueQuery := `
 		INSERT INTO issues (issue_id, project_id, reported_by, summary, description, assignee, status)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
-	_, err := db.Exec(
+	_, err = db.Exec(
 		insertIssueQuery,
 		newIssue.IssueID,
 		projectID,
@@ -723,6 +749,7 @@ func addIssue(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Issue created successfully"})
 }
 
+// checked
 func bulkAddIssues(c *gin.Context) {
 	projectID := c.Param("project_id")
 
@@ -736,23 +763,20 @@ func bulkAddIssues(c *gin.Context) {
 		Tags        []string `json:"Tags"`
 	}
 
-	// Define a structure for the request body that contains an array of issues
 	type BulkIssueRequest struct {
 		Issues []Issue `json:"issues"`
 	}
 
 	var bulkRequest BulkIssueRequest
 	if err := c.ShouldBindJSON(&bulkRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error0": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	fmt.Println(bulkRequest)
 
 	// Start a database transaction
 	tx, err := db.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error1": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer tx.Rollback() // Rollback the transaction if any error occurs
@@ -775,7 +799,7 @@ func bulkAddIssues(c *gin.Context) {
 	_, err = tx.Exec(insertIssueQuery, issueValues...)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error2": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -807,19 +831,21 @@ func bulkAddIssues(c *gin.Context) {
 	_, err = tx.Exec(insertTagsQuery, tagValues...)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error3": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error4": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Issues created successfully"})
 }
 
+// checked (must check middleware and frontend) (add transaction) (can remove projectID as input)
 func editIssue(c *gin.Context) {
+	projectID := c.Param("project_id")
 	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve username from context"})
@@ -843,6 +869,16 @@ func editIssue(c *gin.Context) {
 		return
 	}
 
+	permissions, err := getRolePermissionsHelper(projectID, updatedIssue.Assignee)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if !permissions.Assignable {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Assignee does not have assignable permission"})
+		return
+	}
+
 	query := `
 		SELECT status
 		FROM issues
@@ -858,7 +894,7 @@ func editIssue(c *gin.Context) {
 	}
 
 	if oldStatus != updatedIssue.Status {
-		permissions, err := getRolePermissionsHelper(updatedIssue.ProjectID, username)
+		permissions, err := getRolePermissionsHelper(projectID, username)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch permissions"})
 			return
@@ -880,7 +916,7 @@ func editIssue(c *gin.Context) {
 		SET summary = $1, description = $2, assignee = $3, status = $4
 		WHERE issue_id = $5
 	`
-	_, err := db.Exec(updateQuery, updatedIssue.Summary, updatedIssue.Description, updatedIssue.Assignee, updatedIssue.Status, updatedIssue.IssueID)
+	_, err = db.Exec(updateQuery, updatedIssue.Summary, updatedIssue.Description, updatedIssue.Assignee, updatedIssue.Status, updatedIssue.IssueID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -911,6 +947,7 @@ func editIssue(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Issue updated successfully"})
 }
 
+// checked
 func getProjectIssues(c *gin.Context) {
 	projectID := c.Param("project_id")
 
@@ -1001,6 +1038,7 @@ func getProjectIssues(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"issues": issuesWithTags})
 }
 
+// checked, must check in frontend (modified to all owners)
 func canDeleteProject(c *gin.Context) {
 	projectID := c.Param("project_id")
 
@@ -1010,17 +1048,18 @@ func canDeleteProject(c *gin.Context) {
 		return
 	}
 
-	query := "SELECT owner_username FROM projects WHERE project_id = $1"
-	var ownerUsername string
-	if err := db.QueryRow(query, projectID).Scan(&ownerUsername); err != nil {
+	query := "SELECT role_name FROM project_user_role WHERE project_id = $1 and username = $2"
+	var rolename string
+	if err := db.QueryRow(query, projectID, username).Scan(&rolename); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	canDelete := ownerUsername == username
+	canDelete := rolename == "Owner"
 	c.JSON(http.StatusOK, gin.H{"can_delete_project": canDelete})
 }
 
+// checked, must check in frontend (also returning can_create_project)
 func getPersonByUsername(c *gin.Context) {
 	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
 	if !ok {
@@ -1029,34 +1068,37 @@ func getPersonByUsername(c *gin.Context) {
 	}
 
 	query := `
-        SELECT username, name, email
+        SELECT username, name, email, can_create_project
         FROM users
         WHERE username = $1
     `
 	row := db.QueryRow(query, username)
 
 	var (
-		foundUsername string
-		name          string
-		email         string
+		foundUsername    string
+		name             string
+		email            string
+		canCreateProject bool
 	)
 
 	// Scan the result row
-	if err := row.Scan(&foundUsername, &name, &email); err != nil {
+	if err := row.Scan(&foundUsername, &name, &email, &canCreateProject); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Person not found"})
 		return
 	}
 
 	// Create a response JSON object
 	person := gin.H{
-		"username": foundUsername,
-		"name":     name,
-		"email":    email,
+		"username":         foundUsername,
+		"name":             name,
+		"email":            email,
+		"canCreateProject": canCreateProject,
 	}
 
 	c.JSON(http.StatusOK, gin.H{"person": person})
 }
 
+// checked
 func getAllPeople(c *gin.Context) {
 	currentUsername, ok := c.Request.Context().Value(contextKeyUsername).(string)
 	if !ok {
@@ -1110,6 +1152,7 @@ func getAllPeople(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"people": people})
 }
 
+// checked, must check in frontend
 func getProjectPeople(c *gin.Context) {
 	projectID := c.Param("project_id")
 
@@ -1117,7 +1160,7 @@ func getProjectPeople(c *gin.Context) {
 		SELECT u.username, u.name, u.email, pur.role_name
 		FROM users u
 		JOIN project_user_role pur ON u.username = pur.username
-		WHERE pur.project_id = $1
+		WHERE pur.project_id = $1 and u.active
 	`
 	rows, err := db.Query(query, projectID)
 	if err != nil {
@@ -1152,7 +1195,7 @@ func getProjectPeople(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"people": people})
 }
 
-func TransitionIssue(c *gin.Context) { //to delete
+func TransitionIssue(c *gin.Context) { //delete
 	// Extract the issue_id and status from the request JSON
 	var request struct {
 		IssueID string `json:"issue_id"`
@@ -1198,7 +1241,7 @@ func TransitionIssue(c *gin.Context) { //to delete
 	}
 }
 
-func deleteProject(c *gin.Context) {
+func deleteProject(c *gin.Context) { // checked
 	projectID := c.Param("project_id")
 
 	_, err := db.Exec("DELETE FROM projects WHERE project_id = $1", projectID)
@@ -1211,7 +1254,7 @@ func deleteProject(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Project deleted successfully"})
 }
 
-func getProjectRoles(c *gin.Context) {
+func getProjectRoles(c *gin.Context) { // checked
 	projectID := c.Param("project_id")
 	query := `
 	SELECT role_name, create_issue, edit_issue, transition_issue, close_issue, delete_issue, assignable
@@ -1257,7 +1300,7 @@ func getProjectRoles(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"roles": roles})
 }
 
-func getProjectDetails(c *gin.Context) {
+func getProjectDetails(c *gin.Context) { //checked
 	projectID := c.Param("project_id")
 
 	query := "SELECT project_name, description, owner_username FROM projects WHERE project_id = $1"
@@ -1268,10 +1311,6 @@ func getProjectDetails(c *gin.Context) {
 	)
 	err := db.QueryRow(query, projectID).Scan(&projectName, &description, &ownerUsername)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
-			return
-		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
@@ -1284,7 +1323,7 @@ func getProjectDetails(c *gin.Context) {
 	})
 }
 
-func CreateIssue(c *gin.Context) { //test
+func CreateIssue(c *gin.Context) { //delete
 	reportedBy, ok := c.Request.Context().Value(contextKeyUsername).(string)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve reported_by from context"})
@@ -1322,7 +1361,6 @@ func CreateIssue(c *gin.Context) { //test
 		return
 	}
 
-	// Check permissions for reported_by
 	var assignablePermission bool
 	err = db.QueryRow(`
 	SELECT assignable
@@ -1353,7 +1391,7 @@ func CreateIssue(c *gin.Context) { //test
 	c.JSON(http.StatusCreated, gin.H{"message": "Issue created successfully"})
 }
 
-func createProject(c *gin.Context) {
+func createProject(c *gin.Context) { // checked
 	var project struct {
 		ProjectID     string `json:"projectID"`
 		ProjectName   string `json:"projectName"`
@@ -1442,7 +1480,7 @@ func createProject(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Project added successfully"})
 }
 
-func getProjectsByUsername(c *gin.Context) {
+func getProjectsByUsername(c *gin.Context) { //checked
 	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve username from context"})
@@ -1450,14 +1488,10 @@ func getProjectsByUsername(c *gin.Context) {
 	}
 
 	query := `
-        (SELECT p.project_id, p.project_name, p.description, p.owner_username
+        SELECT p.project_id, p.project_name, p.description, p.owner_username
         FROM projects p
         JOIN project_user_role pur ON p.project_id = pur.project_id
-        WHERE pur.username = $1)
-		UNION
-		(SELECT project_id, project_name, description, owner_username
-			FROM projects
-		WHERE owner_username = $1)
+        WHERE pur.username = $1
     `
 	rows, err := db.Query(query, username)
 	if err != nil {
@@ -1492,7 +1526,7 @@ func getProjectsByUsername(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"projects": projects})
 }
 
-func initDB() {
+func initDB() { // checked
 	connStr := "user=postgres password=kiran dbname=postgres sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", connStr)
@@ -1507,7 +1541,7 @@ func initDB() {
 	fmt.Println("Connected to the database")
 }
 
-func createUser(c *gin.Context) {
+func createUser(c *gin.Context) { // checked
 	type User struct {
 		Username         string `json:"username"`
 		Password         string `json:"password"`
@@ -1551,7 +1585,7 @@ func createUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
 }
 
-func bulkCreateUsers(c *gin.Context) {
+func bulkCreateUsers(c *gin.Context) { // checked
 	type User struct {
 		Username         string `json:"username"`
 		Password         string `json:"password"`
@@ -1570,8 +1604,6 @@ func bulkCreateUsers(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(bulkRequest)
-
 	// Start a database transaction
 	tx, err := db.Begin()
 	if err != nil {
@@ -1588,7 +1620,6 @@ func bulkCreateUsers(c *gin.Context) {
 	userPlaceholders := make([]string, 0)
 
 	for _, user := range bulkRequest.Users {
-		// Hash the user's password before storing it in the database
 		hashedPassword, err := hashPassword(user.Password)
 		if err != nil {
 			tx.Rollback()
@@ -1616,7 +1647,7 @@ func bulkCreateUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Users created successfully"})
 }
 
-func loginUser(c *gin.Context) {
+func loginUser(c *gin.Context) { // checked
 	var user struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -1641,15 +1672,17 @@ func loginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token, "message": "Login successful"})
 }
 
+// checked, must check in frontend
 func getRolePermissionsHelper(projectID, username string) (permissions struct {
 	CreateIssue     bool `json:"create_issue"`
 	EditIssue       bool `json:"edit_issue"`
 	TransitionIssue bool `json:"transition_issue"`
 	CloseIssue      bool `json:"close_issue"`
 	DeleteIssue     bool `json:"delete_issue"`
+	Assignable      bool `json:"assignable"`
 }, err error) {
 	query := `
-    SELECT r.create_issue, r.edit_issue, r.transition_issue, r.close_issue, r.delete_issue
+    SELECT r.create_issue, r.edit_issue, r.transition_issue, r.close_issue, r.delete_issue, r.assignable
     FROM project_user_role pur
     INNER JOIN roles r ON pur.project_id = r.project_id AND pur.role_name = r.role_name
     WHERE pur.project_id = $1 AND pur.username = $2
@@ -1661,12 +1694,13 @@ func getRolePermissionsHelper(projectID, username string) (permissions struct {
 		&permissions.TransitionIssue,
 		&permissions.CloseIssue,
 		&permissions.DeleteIssue,
+		&permissions.Assignable,
 	)
 
 	return permissions, err
 }
 
-func isValidUser(username, password string) bool {
+func isValidUser(username, password string) bool { //checked
 	var storedPassword string
 
 	row := db.QueryRow("SELECT password FROM users WHERE username = $1", username)
@@ -1675,14 +1709,13 @@ func isValidUser(username, password string) bool {
 	}
 
 	// return storedPassword == password // change later
-
 	if err := bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(password)); err != nil {
 		return false
 	}
 	return true
 }
 
-func isUsernameExists(username string) (bool, error) {
+func isUsernameExists(username string) (bool, error) { //checked
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = $1", username).Scan(&count)
 	if err != nil {
@@ -1691,7 +1724,8 @@ func isUsernameExists(username string) (bool, error) {
 	return count > 0, nil
 }
 
-func hashPassword(password string) (string, error) {
+// password <= 72 bytes
+func hashPassword(password string) (string, error) { //checked
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
@@ -1699,11 +1733,11 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func generateJWTToken(username string) (string, error) {
+func generateJWTToken(username string) (string, error) { //checked
 	// Define the token claims (payload)
 	claims := jwt.MapClaims{
 		"username": username,
-		"exp":      time.Now().Add(time.Minute * 1000).Unix(), // Token expires in 24 hours
+		"exp":      time.Now().Add(time.Minute * TOKEN_EXPIRY_IN_MINUTES).Unix(),
 		"iat":      time.Now().Unix(),
 	}
 
