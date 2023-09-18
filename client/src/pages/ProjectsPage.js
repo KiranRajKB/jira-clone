@@ -64,7 +64,7 @@ const Projects = () => {
 
   return (
     <div>
-      <Navbar />
+      {/* <Navbar /> */}
       <Button
         disabled={!canCreateProject}
         variant="contained"

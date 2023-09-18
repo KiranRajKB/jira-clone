@@ -71,9 +71,8 @@ CREATE TABLE issues (
     description TEXT NOT NULL,
     assignee VARCHAR NOT NULL,
     status VARCHAR CHECK (status IN ('opened', 'in progress', 'completed', 'closed')) NOT NULL,
-    FOREIGN KEY (project_id) REFERENCES projects(project_id) ON DELETE CASCADE,
     FOREIGN KEY (reported_by) REFERENCES Users(username) ON DELETE CASCADE,
-    FOREIGN KEY (assignee) REFERENCES Users(username) ON DELETE CASCADE
+    FOREIGN KEY (project_id, assignee) REFERENCES project_user_role(project_id, username) ON DELETE CASCADE
 );
 
 CREATE TABLE issue_tags (

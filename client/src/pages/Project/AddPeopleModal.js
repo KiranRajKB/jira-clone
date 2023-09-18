@@ -20,7 +20,7 @@ const modalStyle = {
     transform: 'translate(-50%, -50%)',
 };
 
-const AddPeopleModal = ({ isOpen, onClose, projectID }) => {
+const AddPeopleModal = ({ isOpen, onClose, projectID, projectPeople }) => {
     const [peopleOptions, setPeopleOptions] = useState([]);
     const [rolesOptions, setRolesOptions] = useState([]);
     const [formData, setFormData] = useState({
@@ -40,6 +40,7 @@ const AddPeopleModal = ({ isOpen, onClose, projectID }) => {
             .catch((error) => {
                 console.error('Failed to fetch people:', error);
             });
+
 
         // Fetch the list of roles for the project
         axios
@@ -86,7 +87,7 @@ const AddPeopleModal = ({ isOpen, onClose, projectID }) => {
                         >
                             <MenuItem value="">Select Username</MenuItem>
                             {peopleOptions.map((person) => (
-                                <MenuItem key={person.username} value={person.username}>
+                                <MenuItem key={person.username} value={person.username} disabled={projectPeople.includes(person.username)}>
                                     {person.username}
                                 </MenuItem>
                             ))}

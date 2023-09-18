@@ -72,8 +72,8 @@ const Profile = () => {
   };
 
   return (
-    <div className="profile-container">
-      <NavigationBar />
+    <div>
+      {/* <NavigationBar /> */}
       <Paper elevation={3} style={{ margin: 'auto', marginTop: '20px', padding: '20px', maxWidth: '400px' }}>
         <List>
           <ListItem>

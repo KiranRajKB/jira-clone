@@ -16,14 +16,32 @@ import NavigationBar from "./components/NavBar";
 import SideBar from "./components/SideBar";
 import { Container, Grid } from "@mui/material";
 
+// function TempProject() {
+//     const { project_id } = useParams("project_id");
+//     return (
+//         <div sytle={{display: "flex", direction: "row"}}>
+//         {/* // <Container style={{ display: "flex", flexDirection: "row", width: "100%", margin: 0, padding: 0 }}> */}
+//             {/* <Grid item xs={2} style={{flex: "1 1"}}> */}
+//                 <SideBar project_id={project_id} />
+//             {/* </Grid> */}
+//                 <Routes>
+//                     <Route path="details" element={<ProjectDetails />} />
+//                     <Route path="roles" element={<ProjectRoles />} />
+//                     <Route path="people" element={<ProjectPeople />} />
+//                     <Route path="issues" element={<ProjectIssues />} />
+//                     <Route path="delete_project" element={<ProjectDelete />} />
+//                 </Routes>
+//         {/* // </Container> */}
+//         </div>
+//     )
+// }
+
 function TempProject() {
     const { project_id } = useParams("project_id");
     return (
-        <Container style={{ display: "flex", flexDirection: "row", width: "100%", margin: 0, padding: 0 }}>
-            <Grid item xs={"auto"} style={{ flex: "0 0 auto" }}>
-                <SideBar project_id={project_id} />
-            </Grid>
-            <Grid item xs={"auto"} style={{ flex: "1 1 auto" }}>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+            <SideBar project_id={project_id} />
+            <div style={{ flex: "1 1 auto", overflow: "auto", marginLeft: "20vw", marginTop: "10vh" }}>
                 <Routes>
                     <Route path="details" element={<ProjectDetails />} />
                     <Route path="roles" element={<ProjectRoles />} />
@@ -31,32 +49,30 @@ function TempProject() {
                     <Route path="issues" element={<ProjectIssues />} />
                     <Route path="delete_project" element={<ProjectDelete />} />
                 </Routes>
-            </Grid>
-        </Container>
-
+            </div>
+        </div>
     )
 }
+
 
 function TempHome() {
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", margin: 0, padding: 0 }}>
-            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", margin: 0, padding: 0 }}>
-                <NavigationBar />
-            </div>
-            <div style={{ flex: "1", display: "flex" }}>
-                <Routes>
-                    {/* <Route path="/project/:project_id/details" element={<ProjectDetails />} />
+        <div>
+            <NavigationBar />
+            {/* <div> */}
+            <Routes>
+                {/* <Route path="/project/:project_id/details" element={<ProjectDetails />} />
                     <Route path="/project/:project_id/roles" element={<ProjectRoles />} />
                     <Route path="/project/:project_id/people" element={<ProjectPeople />} />
                     <Route path="/project/:project_id/issues" element={<ProjectIssues />} />
                     <Route path="/project/:project_id/delete_project" element={<ProjectDelete />} /> */}
-                    <Route path="/project/:project_id/*" element={<TempProject />} />
-                    <Route path="/projects" element={<Projects />} />
-                    <Route path="/people" element={<People />} />
-                    <Route path="/profile" element={<Profile />} />
-                </Routes>
-            </div>
+                <Route path="/project/:project_id/*" element={<TempProject />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/people" element={<People />} />
+                <Route path="/profile" element={<Profile />} />
+            </Routes>
+            {/* </div> */}
         </div>
         // <Container style={{ display: "flex", flexDirection: "column", margin: 0, padding: 0 }}>
         //     <NavigationBar />
@@ -144,14 +160,12 @@ function App() {
 
     return (
         <Router >
-            <Container style={{ padding: 0, margin: 0 }}>
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                {/* <Route path="/register" element={<RegisterPage />} /> */}
+                <Route path="/*" element={<TempHome />} />
 
-                <Routes>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/*" element={<TempHome />} />
-
-                    {/* <Route path="/projects" element={<Projects />} />
+                {/* <Route path="/projects" element={<Projects />} />
                     <Route path="/people" element={<People />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/project/:project_id/details" element={<ProjectDetails />} />
@@ -160,8 +174,7 @@ function App() {
                     <Route path="/project/:project_id/issues" element={<ProjectIssues />} />
                     <Route path="/project/:project_id/delete_project" element={<ProjectDelete />} />
                     <Route path="/" exact element={<Home />} /> */}
-                </Routes>
-            </Container>
+            </Routes>
         </Router>
     );
 }

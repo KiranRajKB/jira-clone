@@ -22,15 +22,6 @@ import { CheckCircleOutline, CancelOutlined } from '@mui/icons-material';
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
-    container: {
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    tableHeaderCell: {
-        fontWeight: 'bold',
-        fontSize: '1.2rem',
-    },
     projectRolesTypography: {
         textAlign: 'center',
         backgroundColor: '#f2f2f2',
@@ -90,127 +81,121 @@ const ProjectRoles = () => {
     };
 
     return (
-        <Grid container className={classes.container}>
-            <Navbar />
-            <Grid container item xs={3} className={classes.container}>
-                <Sidebar project_id={project_id} />
-            </Grid>
-            <Grid item xs={9} marginLeft={'-50px'}>
-                <div className="project-roles-content">
-                    <Typography variant="h4" className={classes.projectRolesTypography}>
-                        Project Roles
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<AddIcon />}
-                        onClick={handleCreateRoleClick}
-                        disabled={!canAddRole}
-                        style={{ marginBottom: '20px' }}
-                    >
-                        Add Role
-                    </Button>
-                    {loading ? (
-                        <Typography>Loading project roles...</Typography>
-                    ) : (
-                        <TableContainer component={Paper}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell className={classes.tableHeaderCell}>Role Name</TableCell>
-                                        <TableCell className={classes.tableHeaderCell}>Create Issue</TableCell>
-                                        <TableCell className={classes.tableHeaderCell}>Edit Issue</TableCell>
-                                        <TableCell className={classes.tableHeaderCell}>Transition Issue</TableCell>
-                                        <TableCell className={classes.tableHeaderCell}>Close Issue</TableCell>
-                                        <TableCell className={classes.tableHeaderCell}>Delete Issue</TableCell>
-                                        <TableCell className={classes.tableHeaderCell}>Assignable</TableCell>
+        <div style={{ display: 'flex', flexDirection: 'column', margin: "30px" }}>
+            <div>
+            <Typography variant="h4" style={{margin: "20px"}}>
+                    Project Roles
+                </Typography>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={handleCreateRoleClick}
+                    disabled={!canAddRole}
+                    style={{ margin: '20px' }}
+                >
+                    Add Role
+                </Button>
+                {loading ? (
+                    <Typography>Loading project roles...</Typography>
+                ) : (
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell style={{fontWeight: "bold", fontSize: "large"}}>Role Name</TableCell>
+                                    <TableCell style={{fontWeight: "bold", fontSize: "large"}}>Create Issue</TableCell>
+                                    <TableCell style={{fontWeight: "bold", fontSize: "large"}}>Edit Issue</TableCell>
+                                    <TableCell style={{fontWeight: "bold", fontSize: "large"}}>Transition Issue</TableCell>
+                                    <TableCell style={{fontWeight: "bold", fontSize: "large"}}>Close Issue</TableCell>
+                                    <TableCell style={{fontWeight: "bold", fontSize: "large"}}>Delete Issue</TableCell>
+                                    <TableCell style={{fontWeight: "bold", fontSize: "large"}}>Assignable</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {roles.map((role, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{role.role_name}</TableCell>
+                                        <TableCell>
+                                            {role.create_issue ? (
+                                                <IconButton>
+                                                    <CheckCircleOutline color="primary" />
+                                                </IconButton>
+                                            ) : (
+                                                <IconButton>
+                                                    <CancelOutlined color="error" />
+                                                </IconButton>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {role.edit_issue ? (
+                                                <IconButton>
+                                                    <CheckCircleOutline color="primary" />
+                                                </IconButton>
+                                            ) : (
+                                                <IconButton>
+                                                    <CancelOutlined color="error" />
+                                                </IconButton>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {role.transition_issue ? (
+                                                <IconButton>
+                                                    <CheckCircleOutline color="primary" />
+                                                </IconButton>
+                                            ) : (
+                                                <IconButton>
+                                                    <CancelOutlined color="error" />
+                                                </IconButton>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {role.close_issue ? (
+                                                <IconButton>
+                                                    <CheckCircleOutline color="primary" />
+                                                </IconButton>
+                                            ) : (
+                                                <IconButton>
+                                                    <CancelOutlined color="error" />
+                                                </IconButton>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {role.delete_issue ? (
+                                                <IconButton>
+                                                    <CheckCircleOutline color="primary" />
+                                                </IconButton>
+                                            ) : (
+                                                <IconButton>
+                                                    <CancelOutlined color="error" />
+                                                </IconButton>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {role.assignable ? (
+                                                <IconButton>
+                                                    <CheckCircleOutline color="primary" />
+                                                </IconButton>
+                                            ) : (
+                                                <IconButton>
+                                                    <CancelOutlined color="error" />
+                                                </IconButton>
+                                            )}
+                                        </TableCell>
                                     </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {roles.map((role, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{role.role_name}</TableCell>
-                                            <TableCell>
-                                                {role.create_issue ? (
-                                                    <IconButton>
-                                                        <CheckCircleOutline color="primary" />
-                                                    </IconButton>
-                                                ) : (
-                                                    <IconButton>
-                                                        <CancelOutlined color="error" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {role.edit_issue ? (
-                                                    <IconButton>
-                                                        <CheckCircleOutline color="primary" />
-                                                    </IconButton>
-                                                ) : (
-                                                    <IconButton>
-                                                        <CancelOutlined color="error" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {role.transition_issue ? (
-                                                    <IconButton>
-                                                        <CheckCircleOutline color="primary" />
-                                                    </IconButton>
-                                                ) : (
-                                                    <IconButton>
-                                                        <CancelOutlined color="error" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {role.close_issue ? (
-                                                    <IconButton>
-                                                        <CheckCircleOutline color="primary" />
-                                                    </IconButton>
-                                                ) : (
-                                                    <IconButton>
-                                                        <CancelOutlined color="error" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {role.delete_issue ? (
-                                                    <IconButton>
-                                                        <CheckCircleOutline color="primary" />
-                                                    </IconButton>
-                                                ) : (
-                                                    <IconButton>
-                                                        <CancelOutlined color="error" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {role.assignable ? (
-                                                    <IconButton>
-                                                        <CheckCircleOutline color="primary" />
-                                                    </IconButton>
-                                                ) : (
-                                                    <IconButton>
-                                                        <CancelOutlined color="error" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    )}
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
 
-                    <CreateRoleModal
-                        project_id={project_id}
-                        isOpen={isCreateRoleModalOpen}
-                        onClose={handleCloseCreateRoleModal}
-                    />
-                </div>
-            </Grid>
-        </Grid>
+                <CreateRoleModal
+                    project_id={project_id}
+                    isOpen={isCreateRoleModalOpen}
+                    onClose={handleCloseCreateRoleModal}
+                />
+            </div>
+        </div>
     );
 };
 

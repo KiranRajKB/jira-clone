@@ -12,6 +12,13 @@ import Papa from 'papaparse';
 const BulkCreateIssueModal = ({ isOpen, onClose, projectID }) => {
     const [csvFile, setCsvFile] = useState(null);
 
+    const generateRandomIssueID = () => {
+        const timestamp = new Date().getTime();
+        const randomNum = Math.floor(Math.random() * 10000);
+        const issueID = `ISSUE-${timestamp}-${randomNum}`;
+        return issueID;
+      };
+
     const handleCsvFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -32,6 +39,7 @@ const BulkCreateIssueModal = ({ isOpen, onClose, projectID }) => {
                             const parsedData = results.data.map((row) => ({
                                 ...row,
                                 Tags: row.Tags.split(' '),
+                                IssueID: generateRandomIssueID()
                             }));
 
                             console.log(parsedData);
@@ -49,6 +57,7 @@ const BulkCreateIssueModal = ({ isOpen, onClose, projectID }) => {
                             if (response.status === 200) {
                                 console.log('Bulk create issues successful');
                                 onClose();
+                                window.location.reload();
                             }
                         } catch (error) {
                             console.error('Error uploading JSON data:', error);

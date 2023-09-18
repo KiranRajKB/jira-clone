@@ -16,8 +16,11 @@ const useStyles = makeStyles((theme) => ({
     sidebar: {
         backgroundColor: theme.palette.primary.main,
         color: theme.palette.primary.contrastText,
-        width: '250px',
-        height: '100%',
+        width: '18vw',
+        minHeight: '90vh',
+        position: 'fixed', // Make the sidebar fixed
+        top: '10vh', // Stick it to the top of the viewport
+        zindex: 1000
     },
     projectTitle: {
         fontWeight: 'bold',

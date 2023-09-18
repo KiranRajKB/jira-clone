@@ -19,7 +19,7 @@ var db *sql.DB
 var jwtKey = []byte("your-secret-key")
 var contextKeyUsername = "username"
 
-const TOKEN_EXPIRY_IN_MINUTES = 10
+const TOKEN_EXPIRY_IN_MINUTES = 100
 const adminUsername = "admin"
 const PORT = "8081"
 
@@ -29,7 +29,7 @@ func main() {
 	router := gin.Default()
 	router.Use(corsMiddleware())
 
-	router.POST("/login", checkActiveUserMiddleWare(), loginUser)
+	router.POST("/login", loginUser)
 
 	router.Use(JWTMiddleware())
 
@@ -66,7 +66,7 @@ func main() {
 	router.PUT("/project/:project_id/edit_issue", CheckEditIssueAccessMiddleware(), editIssue)                    // changed route (change in frontend)
 	router.DELETE("/project/:project_id/delete_issue/:issue_id", CheckDeleteIssueAccessMiddleware(), deleteIssue) // changed route (change in frontend)
 
-	router.Run(PORT)
+	router.Run("localhost:8081")
 }
 
 func corsMiddleware() gin.HandlerFunc {
@@ -157,31 +157,16 @@ func checkAdminMiddleWare() gin.HandlerFunc {
 }
 
 // checked
-func checkActiveUserMiddleWare() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		username, ok := c.Request.Context().Value(contextKeyUsername).(string)
-		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve username from context"})
-			c.Abort()
-			return
-		}
-
-		var isActive bool
-		row := db.QueryRow("SELECT active FROM users WHERE username = $1", username)
-		if err := row.Scan(&isActive); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve active status from database"})
-			c.Abort()
-			return
-		}
-
-		if !isActive {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User deactivated"})
-			c.Abort()
-			return
-		}
-
-		c.Next()
+func checkActiveUser(username string) bool {
+	var isActive bool
+	row := db.QueryRow("SELECT active FROM users WHERE username = $1", username)
+	if err := row.Scan(&isActive); err != nil {
+		return false
 	}
+	if !isActive {
+		return false
+	}
+	return true
 }
 
 // checked
@@ -683,7 +668,7 @@ func getRolePermissions(c *gin.Context) {
 	c.JSON(http.StatusOK, permissions)
 }
 
-// checked (add transaction)
+// must check (add transaction)
 func addIssue(c *gin.Context) {
 	projectID := c.Param("project_id")
 	type Issue struct {
@@ -712,6 +697,17 @@ func addIssue(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Assignee does not have assignable permission"})
 		return
 	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+		return
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
 
 	// Insert the new issue into the database along with the provided issueID
 	insertIssueQuery := `
@@ -744,6 +740,11 @@ func addIssue(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Issue created successfully"})
@@ -843,7 +844,7 @@ func bulkAddIssues(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Issues created successfully"})
 }
 
-// checked (must check middleware and frontend) (add transaction) (can remove projectID as input)
+// must check (must check middleware and frontend)
 func editIssue(c *gin.Context) {
 	projectID := c.Param("project_id")
 	username, ok := c.Request.Context().Value(contextKeyUsername).(string)
@@ -854,8 +855,8 @@ func editIssue(c *gin.Context) {
 
 	type Issue struct {
 		IssueID     string   `json:"issue_id"`
-		ProjectID   string   `json:"project_id"`
-		ReportedBy  string   `json:"reported_by"`
+		// ProjectID   string   `json:"project_id"`
+		// ReportedBy  string   `json:"reported_by"`
 		Summary     string   `json:"summary"`
 		Description string   `json:"description"`
 		Assignee    string   `json:"assignee"`
@@ -911,6 +912,17 @@ func editIssue(c *gin.Context) {
 		}
 	}
 
+	tx, err := db.Begin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+		return
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
 	updateQuery := `
 		UPDATE issues
 		SET summary = $1, description = $2, assignee = $3, status = $4
@@ -942,6 +954,11 @@ func editIssue(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Issue updated successfully"})
@@ -1660,6 +1677,11 @@ func loginUser(c *gin.Context) { // checked
 
 	if !isValidUser(user.Username, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	if !checkActiveUser(user.Username) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User deactivated"})
 		return
 	}
 

@@ -144,14 +144,12 @@ const ProjectIssues = () => {
     });
 
     return (
-        <div className={classes.container}>
-            <NavigationBar />
-            <Grid container className={classes.container}>
-                <Grid item xs={2} style={{ marginRight: "40px" }}>
-                    <Sidebar project_id={project_id} />
-                </Grid>
-                <Grid item xs="auto">
-                    <Typography variant="h4" >Project Issues</Typography>
+        <div style={{ display: 'flex', flexDirection: 'column', margin: "30px" }}>
+            <div>
+                <Typography variant="h4" style={{ margin: "20px" }}>
+                    Project Isses
+                </Typography>
+                <div className={classes.searchContainer}>
                     <Button
                         variant="contained"
                         color="primary"
@@ -159,6 +157,7 @@ const ProjectIssues = () => {
                         startIcon={<AddIcon className={classes.icon} />}
                         onClick={handleOpenCreateIssueModal}
                         disabled={!canCreateIssue}
+                        style={{ margin: "20px" }}
                     >
                         Create Issue
                     </Button>
@@ -173,80 +172,76 @@ const ProjectIssues = () => {
                     >
                         Bulk Create Issues
                     </Button>
-                    <div className={classes.searchContainer}>
-                        <TextField
-                            label="Search by Keyword"
-                            variant="outlined"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <Checkbox
-                            icon={<CheckBoxOutlineBlankIcon />}
-                            checkedIcon={<CheckBoxIcon />}
-                            checked={showAssignedToMe}
-                            onChange={() => setShowAssignedToMe(!showAssignedToMe)}
-                        />
-                        <Typography>Show Assigned to Me</Typography>
-                    </div>
-
-                    {loading ? (
-                        <p>Loading project issues...</p>
-                    ) : (
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>ID</TableCell>
-                                        <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Summary</TableCell>
-                                        <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Status</TableCell>
-                                        <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Reported By</TableCell>
-                                        <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Assignee</TableCell>
-                                        <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Tags</TableCell>
-                                        <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Action</TableCell>
+                    
+                    <TextField
+                        label="Search by Keyword"
+                        variant="outlined"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Checkbox
+                        icon={<CheckBoxOutlineBlankIcon />}
+                        checkedIcon={<CheckBoxIcon />}
+                        checked={showAssignedToMe}
+                        onChange={() => setShowAssignedToMe(!showAssignedToMe)}
+                    />
+                    <Typography>Show Assigned to Me</Typography>
+                </div>
+                {loading ? (
+                    <p>Loading project issues...</p>
+                ) : (
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>ID</TableCell>
+                                    <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Summary</TableCell>
+                                    <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Status</TableCell>
+                                    <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Reported By</TableCell>
+                                    <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Assignee</TableCell>
+                                    <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Tags</TableCell>
+                                    <TableCell style={{ fontWeight: "bold", fontSize: "large" }}>Action</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {filteredIssues.map((issue) => (
+                                    <TableRow key={issue.issue_id}>
+                                        <TableCell className={classes.tableCell}>{issue.issue_id}</TableCell>
+                                        <TableCell className={classes.tableCell}>{issue.summary}</TableCell>
+                                        <TableCell className={classes.tableCell}>{issue.status}</TableCell>
+                                        <TableCell className={classes.tableCell}>{issue.reported_by}</TableCell>
+                                        <TableCell className={classes.tableCell}>{issue.assignee}</TableCell>
+                                        <TableCell className={classes.tableCell}>{issue.tags?.join(', ')}</TableCell>
+                                        <TableCell className={classes.tableCell}>
+                                            <Button
+                                                variant="outlined"
+                                                onClick={() => handleIssueClick(issue)}
+                                            >
+                                                View Details
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {filteredIssues.map((issue) => (
-                                        <TableRow key={issue.issue_id}>
-                                            <TableCell className={classes.tableCell}>{issue.issue_id}</TableCell>
-                                            <TableCell className={classes.tableCell}>{issue.summary}</TableCell>
-                                            <TableCell className={classes.tableCell}>{issue.status}</TableCell>
-                                            <TableCell className={classes.tableCell}>{issue.reported_by}</TableCell>
-                                            <TableCell className={classes.tableCell}>{issue.assignee}</TableCell>
-                                            <TableCell className={classes.tableCell}>{issue.tags?.join(', ')}</TableCell>
-                                            <TableCell className={classes.tableCell}>
-                                                <Button
-                                                    variant="outlined"
-                                                    onClick={() => handleIssueClick(issue)}
-                                                >
-                                                    View Details
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    )}
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
 
-                    {selectedIssue && (
-                        <IssueCard selectedIssue={selectedIssue} closeModal={closeModal} />
-                    )}
+                {selectedIssue && (
+                    <IssueCard isOpen={!!selectedIssue} selectedIssue={selectedIssue} closeModal={closeModal} />
+                )}
 
-                    <CreateIssueModal
-                        isOpen={isCreateIssueModalOpen}
-                        projectID={project_id}
-                        onClose={handleCloseCreateIssueModal}
-                    />
-                    <BulkCreateIssueModal
-                        isOpen={isBulkCreateModalOpen}
-                        projectID={project_id}
-                        onClose={handleCloseBulkCreateModal}
-                    />
-
-                </Grid>
-            </Grid>
-
+                <CreateIssueModal
+                    isOpen={isCreateIssueModalOpen}
+                    projectID={project_id}
+                    onClose={handleCloseCreateIssueModal}
+                />
+                <BulkCreateIssueModal
+                    isOpen={isBulkCreateModalOpen}
+                    projectID={project_id}
+                    onClose={handleCloseBulkCreateModal}
+                />
+            </div>
         </div>
     );
 };

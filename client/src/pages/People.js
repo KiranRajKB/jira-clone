@@ -120,8 +120,8 @@ const People = () => {
     };
 
     return (
-        <div className="people-container">
-            <NavigationBar />
+        <div>
+            {/* <NavigationBar /> */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <TextField
                     variant="outlined"

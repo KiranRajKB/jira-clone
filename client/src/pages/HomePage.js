@@ -5,7 +5,7 @@ import Navbar from "../components/NavBar";
 function Projects() {
   return (
     <div>
-      <Navbar />
+      {/* <Navbar /> */}
       <h1>Home Page</h1>
       {/* Add content for the Projects page */}
     </div>

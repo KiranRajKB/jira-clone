@@ -1,4 +1,4 @@
-IssueID,ReportedBy,Summary,Description,Assignee,Status,Tags
-1,u1,Issue 1,Description 1,u2,opened,Tag1 Tag2
-2,u2,Issue 2,Description 2,u2,in progress,Tag3 Tag4
-3,u2,Issue 3,Description 3,u2,completed,Tag5
+ReportedBy,Summary,Description,Assignee,Status,Tags
+u4,Issue 1,Description 1,u4,opened,Tag1 Tag2
+u4,Issue 2,Description 2,u4,in progress,Tag3 Tag4
+u4,Issue 3,Description 3,u4,completed,Tag5
