@@ -1,89 +1,146 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  Container,
+  Paper,
+  Avatar,
+} from "@mui/material";
+import LockIcon from "@mui/icons-material/Lock";
+import { makeStyles } from "@mui/styles";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  paper: {
+    padding: theme.spacing(4),
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  avatar: {
+    backgroundColor: theme.palette.primary.main,
+    marginBottom: theme.spacing(2),
+  },
+  form: {
+    width: "100%",
+  },
+  header: {
+    fontSize: "24px",
+    fontWeight: "bold",
+    marginBottom: theme.spacing(2),
+  },
+}));
 
 function LoginPage() {
-    const [formData, setFormData] = useState({
-        username: "",
-        password: "",
+  const classes = useStyles();
+  const navigate = useNavigate();
+
+  const [loginData, setLoginData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setLoginData({
+      ...loginData,
+      [name]: value,
     });
+  };
 
-    const navigate = useNavigate();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    try {
+      const response = await axios.post("http://localhost:8081/login", {
+        username: loginData.username,
+        password: loginData.password,
+      });
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
+      if (response.status === 200) {
+        const { token } = response.data;
+
+        // Store the token securely in localStorage
+        localStorage.setItem("jwt_token", token);
+        localStorage.setItem("username", loginData.username);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        toast.success("Logged in successfully", { autoClose: 1000 });
+        navigate("/");
+      } else {
+        toast.error("Login failed. Please check your credentials", {
+          autoClose: 1000,
         });
-    };
+        setLoginData({ username: "", password: "" });
+        document.getElementsByName("username")[0].focus();
+      }
+    } catch (error) {
+      toast.error("Login failed. Please check your credentials", {
+        autoClose: 1000,
+      });
+      setLoginData({ username: "", password: "" });
+      document.getElementsByName("username")[0].focus();
+    }
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-    
-        try {
-          const response = await axios.post("http://localhost:8081/login", {
-            username: formData.username,
-            password: formData.password,
-          });
-          
-          if (response.status === 200) {
-            const { token } = response.data;
-    
-            // Store the token securely in localStorage
-            localStorage.setItem("jwt_token", token);
-            localStorage.setItem("username", formData.username);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            toast.error("Logged in successfully");
-            navigate("/");
-        } else {
-            // Handle login error and display toast notification
-            toast.error("Login failed. Please check your credentials.");
-            console.log("ERROR")
-          }
-        } catch (error) {
-          // Handle network or other errors and display toast notification
-          toast.error("Login failed. Please check your credentials.");
-          console.log("ERROR", error)
-
-        }
-      };
-
-    return (
-        <div>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Username:
-                    <input
-                        type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                    />
-                </label>
-                <br />
-                <label>
-                    Password:
-                    <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                    />
-                </label>
-                <br />
-                <button type="submit">Login</button>
-            </form>
-            <p>
-                New user? <Link to="/register">Register</Link>
-            </p>
-        </div>
-    );
+  return (
+    <div className={classes.root}>
+      <Container component="main" maxWidth="xs">
+        <Paper elevation={3} className={classes.paper}>
+          <Avatar className={classes.avatar}>
+            <LockIcon />
+          </Avatar>
+          <Typography fontWeight="bold" variant="h5" align="center" className={classes.header}>
+            Task Management System
+          </Typography>
+          <form onSubmit={handleSubmit} className={classes.form}>
+            <TextField
+              label="Username"
+              variant="outlined"
+              fullWidth
+              name="username"
+              value={loginData.username}
+              onChange={handleChange}
+              margin="normal"
+              required
+            />
+            <TextField
+              label="Password"
+              variant="outlined"
+              fullWidth
+              type="password"
+              name="password"
+              value={loginData.password}
+              onChange={handleChange}
+              margin="normal"
+              required
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              startIcon={<LockIcon />}
+              style={{ marginTop: "16px" }}
+            >
+              Login
+            </Button>
+          </form>
+        </Paper>
+      </Container>
+    </div>
+  );
 }
 
 export default LoginPage;

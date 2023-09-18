@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from 'react-modal';
+import Modal from '@mui/material/Modal';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+
+const modalStyle = {
+    position: 'absolute',
+    width: 400,
+    bgcolor: 'background.paper',
+    boxShadow: 24,
+    p: 4,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+};
 
 const AddPeopleModal = ({ isOpen, onClose, projectID }) => {
     const [peopleOptions, setPeopleOptions] = useState([]);
@@ -12,7 +30,8 @@ const AddPeopleModal = ({ isOpen, onClose, projectID }) => {
 
     useEffect(() => {
         // Fetch the list of people
-        axios.get('http://localhost:8081/people')
+        axios
+            .get('http://localhost:8081/people')
             .then((response) => {
                 if (response.status === 200) {
                     setPeopleOptions(response.data.people);
@@ -23,7 +42,8 @@ const AddPeopleModal = ({ isOpen, onClose, projectID }) => {
             });
 
         // Fetch the list of roles for the project
-        axios.get(`http://localhost:8081/project/${projectID}/roles`)
+        axios
+            .get(`http://localhost:8081/project/${projectID}/roles`)
             .then((response) => {
                 if (response.status === 200) {
                     setRolesOptions(response.data.roles);
@@ -34,58 +54,71 @@ const AddPeopleModal = ({ isOpen, onClose, projectID }) => {
             });
     }, [isOpen, projectID]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Make a POST request to add people to the project
-        axios.post(`http://localhost:8081/project/${projectID}/add_project_people`, formData)
-            .then((response) => {
-                if (response.status === 200) {
-                    onClose();
-                }
-            })
-            .catch((error) => {
-                console.error('Error adding people:', error);
-            });
+        try {
+            // Make a POST request to add people to the project
+            const response = await axios.post(`http://localhost:8081/project/${projectID}/add_project_people`, formData);
+            if (response.status === 200) {
+                onClose();
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error adding people:', error);
+        }
     };
 
     return (
-        <Modal isOpen={isOpen} onRequestClose={onClose} contentLabel="Add People Modal">
-            <h2>Add People</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="username">Username:</label>
-                    <select
-                        id="username"
-                        name="PersonUsername"
-                        value={formData.PersonUsername}
-                        onChange={(e) => setFormData({ ...formData, PersonUsername: e.target.value })}
+        <Modal open={isOpen} onClose={onClose}>
+            <Box sx={modalStyle}>
+                <Typography variant="h4" gutterBottom>
+                    Add People
+                </Typography>
+                <form onSubmit={handleSubmit}>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel htmlFor="username">Username</InputLabel>
+                        <Select
+                            id="username"
+                            name="PersonUsername"
+                            value={formData.PersonUsername}
+                            onChange={(e) => setFormData({ ...formData, PersonUsername: e.target.value })}
+                            required
+                        >
+                            <MenuItem value="">Select Username</MenuItem>
+                            {peopleOptions.map((person) => (
+                                <MenuItem key={person.username} value={person.username}>
+                                    {person.username}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                        <InputLabel htmlFor="role">Role</InputLabel>
+                        <Select
+                            id="role"
+                            name="PersonRole"
+                            value={formData.PersonRole}
+                            onChange={(e) => setFormData({ ...formData, PersonRole: e.target.value })}
+                            required
+                        >
+                            <MenuItem value="">Select Role</MenuItem>
+                            {rolesOptions.map((role) => (
+                                <MenuItem key={role.role_name} value={role.role_name}>
+                                    {role.role_name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 2 }}
                     >
-                        <option value="">Select Username</option>
-                        {peopleOptions.map((person) => (
-                            <option key={person.username} value={person.username}>
-                                {person.username}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="role">Role:</label>
-                    <select
-                        id="role"
-                        name="PersonRole"
-                        value={formData.PersonRole}
-                        onChange={(e) => setFormData({ ...formData, PersonRole: e.target.value })}
-                    >
-                        <option value="">Select Role</option>
-                        {rolesOptions.map((role) => (
-                            <option key={role.role_name} value={role.role_name}>
-                                {role.role_name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <button type="submit" >Add</button>
-            </form>
+                        Add
+                    </Button>
+                </form>
+            </Box>
         </Modal>
     );
 };

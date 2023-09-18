@@ -1,0 +1,3 @@
+username,name,email,password,canCreateProject
+u4,user1,user4@gmail.com,password1,true
+u5,user2,user5@gmail.com,password2,false

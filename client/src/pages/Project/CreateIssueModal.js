@@ -1,151 +1,213 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from 'react-modal';
+import Modal from '@mui/material/Modal';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close'; // Material-UI CloseIcon
+import Autocomplete from '@mui/material/Autocomplete';
+import { makeStyles } from '@mui/styles';
 
-Modal.setAppElement('#root');
+const useStyles = makeStyles((theme) => ({
+  modalContent: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    background: 'white',
+    borderRadius: '4px',
+    boxShadow: '24px',
+    padding: '16px',
+    minWidth: '300px',
+    textAlign: 'center',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(2),
+  },
+  buttonContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: theme.spacing(2),
+  },
+  tagsInput: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: theme.spacing(1),
+  },
+  tagInput: {
+    width: '100%',
+  },
+}));
 
 const CreateIssueModal = ({ isOpen, onClose, projectID }) => {
-    const [formData, setFormData] = useState({
-        issue_id: '', // You may want to generate this dynamically
-        reported_by: localStorage.getItem('username'),
-        summary: '',
-        description: '',
-        assignee: '',
-        status: 'opened',
-        tags: [], // Array to store tags
-    });
+  const classes = useStyles();
 
-    const [assignees, setAssignees] = useState([]);
+  const generateRandomIssueID = () => {
+    const timestamp = new Date().getTime();
+    const randomNum = Math.floor(Math.random() * 10000);
+    const issueID = `ISSUE-${timestamp}-${randomNum}`;
+    return issueID;
+  };
 
-    useEffect(() => {
-        axios.get(`http://localhost:8081/project/${projectID}/assignees`)
-            .then((response) => {
-                if (response.status === 200) {
-                    setAssignees(response.data.assignees);
-                }
-            })
-            .catch((error) => {
-                console.error('Error fetching assignees:', error);
-            });
-    }, [projectID]);
+  const [formData, setFormData] = useState({
+    issue_id: generateRandomIssueID(),
+    reported_by: localStorage.getItem('username'),
+    summary: '',
+    description: '',
+    assignee: '',
+    status: 'opened',
+    tags: [],
+  });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        axios.post(`http://localhost:8081/project/${projectID}/add_issue`, formData)
-            .then((response) => {
-                if (response.status === 200) {
-                    onClose();
-                }
-            })
-            .catch((error) => {
-                console.error('Error creating issue:', error);
-            });
-    };
+  const [assignees, setAssignees] = useState([]);
 
-    const handleAddTag = () => {
-        const { tags, newTag } = formData;
-        if (newTag && !tags.includes(newTag)) {
-            setFormData({ ...formData, tags: [...tags, newTag], newTag: '' });
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8081/project/${projectID}/assignees`)
+      .then((response) => {
+        if (response.status === 200) {
+          setAssignees(response.data.assignees);
         }
-    };
+      })
+      .catch((error) => {
+        console.error('Error fetching assignees:', error);
+      });
+  }, [projectID]);
 
-    const handleRemoveTag = (tagToRemove) => {
-        const updatedTags = formData.tags.filter((tag) => tag !== tagToRemove);
-        setFormData({ ...formData, tags: updatedTags });
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    axios
+      .post(`http://localhost:8081/project/${projectID}/add_issue`, formData)
+      .then((response) => {
+        if (response.status === 200) {
+          onClose();
+          window.location.reload();
+        }
+      })
+      .catch((error) => {
+        console.error('Error creating issue:', error);
+      });
+  };
 
-    return (
-        <Modal
-            isOpen={isOpen}
-            onRequestClose={onClose}
-            contentLabel="Create Issue Modal"
-            className="create-issue-modal"
-        >
-            <h2>Create Issue</h2>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Issue ID:
-                    <input
-                        type="text"
-                        name="issue_id"
-                        value={formData.issue_id}
-                        onChange={(e) => setFormData({ ...formData, issue_id: e.target.value })}
-                        required
-                    />
-                </label>
-                <label>
-                    Summary:
-                    <input
-                        type="text"
-                        name="summary"
-                        value={formData.summary}
-                        onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                        required
-                    />
-                </label>
-                <label>
-                    Description:
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    ></textarea>
-                </label>
-                <label>
-                    Assignee:
-                    <select
-                        name="assignee"
-                        value={formData.assignee}
-                        onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
-                        required
-                    >
-                        <option value="">Select Assignee</option>
-                        {assignees?.map((assignee) => (
-                            <option
-                                key={assignee.username}
-                                value={assignee.username}
-                                disabled={!assignee.assignable}
-                            >
-                                {assignee.username}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-                <div>
-                    <label>Tags:</label>
-                    <div className="tags-input">
-                        {formData.tags.map((tag, index) => (
-                            <span key={index} className="tag">
-                                {tag}
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveTag(tag)}
-                                    className="tag-remove"
-                                >
-                                    X
-                                </button>
-                            </span>
-                        ))}
-                        <input
-                            type="text"
-                            name="newTag"
-                            value={formData.newTag || ''}
-                            onChange={(e) => setFormData({ ...formData, newTag: e.target.value })}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handleAddTag();
-                                }
-                            }}
-                            placeholder="Add tag and press Enter"
-                        />
-                    </div>
-                </div>
-                <button type="submit">Create</button>
-            </form>
-            <button onClick={onClose}>Cancel</button>
-        </Modal>
-    );
+  const handleAddTag = () => {
+    const { tags, newTag } = formData;
+    if (newTag && !tags.includes(newTag)) {
+      setFormData({ ...formData, tags: [...tags, newTag], newTag: '' });
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    const updatedTags = formData.tags.filter((tag) => tag !== tagToRemove);
+    setFormData({ ...formData, tags: updatedTags });
+  };
+
+  return (
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      aria-labelledby="create-issue-modal"
+      aria-describedby="create-issue-description"
+    >
+      <Box className={classes.modalContent}>
+        <Typography variant="h6" id="create-issue-modal" gutterBottom>
+          Create Issue
+        </Typography>
+        <form className={classes.form} onSubmit={handleSubmit}>
+          <TextField
+            label="Issue ID"
+            variant="outlined"
+            disabled
+            value={formData.issue_id}
+            required
+          />
+          <TextField
+            label="Summary"
+            variant="outlined"
+            value={formData.summary}
+            onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+            required
+          />
+          <TextField
+            label="Description"
+            variant="outlined"
+            multiline
+            rows={4}
+            value={formData.description}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
+            required
+          />
+          <FormControl variant="outlined">
+            <InputLabel>Assignee</InputLabel>
+            <Select
+              label="Assignee"
+              value={formData.assignee}
+              onChange={(e) =>
+                setFormData({ ...formData, assignee: e.target.value })
+              }
+              required
+            >
+              <MenuItem value="">Select Assignee</MenuItem>
+              {assignees?.map((assignee) => (
+                <MenuItem
+                  key={assignee.username}
+                  value={assignee.username}
+                  disabled={!assignee.assignable}
+                >
+                  {assignee.username}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <div>
+            <Typography>Tags:</Typography>
+            <div className={classes.tagsInput}>
+              {formData.tags.map((tag, index) => (
+                <Chip
+                  key={index}
+                  label={tag}
+                  onDelete={() => handleRemoveTag(tag)}
+                />
+              ))}
+              <TextField
+                variant="outlined"
+                className={classes.tagInput}
+                value={formData.newTag || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, newTag: e.target.value })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+                placeholder="Add tag and press Enter"
+              />
+            </div>
+          </div>
+          <div className={classes.buttonContainer}>
+            <Button variant="contained" color="primary" type="submit">
+              Create
+            </Button>
+            <Button variant="outlined" color="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Box>
+    </Modal>
+  );
 };
 
 export default CreateIssueModal;

@@ -1,147 +1,117 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Navbar from "../components/NavBar";
+import Navbar from '../components/NavBar';
 import { useNavigate } from 'react-router-dom';
 import CreateProjectModal from './CreateProjectModal';
-
-
-// const Projects = () => {
-//     const nav = useNavigate();
-//     const [projects, setProjects] = useState([]);
-
-//     useEffect(() => {
-//         axios.get('http://localhost:8081/projects')
-//             .then(response => {
-//                 setProjects(response.data.projects);
-//             })
-//             .catch(error => {
-//                 console.error('Error fetching projects:', error);
-//             });
-//     }, []);
-
-//     const handleRowClick = (project_id) => {
-//         // Handle the click event for a specific project
-//         console.log(`Clicked on project with ID: ${project_id}`);
-//         // You can perform any desired action here, such as navigating to a project details page.
-//     };
-
-//     return (
-//         <div>
-//             <Navbar />
-//             <h1>Projects</h1>
-//             <table>
-//                 <thead>
-//                     <tr>
-//                         <th>Project ID</th>
-//                         <th>Project Name</th>
-//                         <th>Description</th>
-//                         <th>Owner Username</th>
-//                         <th>Actions</th>
-//                     </tr>
-//                 </thead>
-//                 <tbody>
-//                     {projects.map(project => (
-//                         <tr key={project.project_id}>
-//                             <td>{project.project_id}</td>
-//                             <td>{project.project_name}</td>
-//                             <td>{project.description}</td>
-//                             <td>{project.owner_username}</td>
-//                             <td>
-//                                 <button onClick={() => nav(`/project/${project.project_id}/details`)}>View Details</button>
-//                             </td>
-//                         </tr>
-//                     ))}
-//                 </tbody>
-//             </table>
-//         </div>
-//     );
-// };
-
-// export default Projects;
+import {
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
 
 const Projects = () => {
-    const nav = useNavigate();
-    const [projects, setProjects] = useState([]);
-    const [canCreateProject, setCanCreateProject] = useState(false);
-    const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const nav = useNavigate();
+  const [projects, setProjects] = useState([]);
+  const [canCreateProject, setCanCreateProject] = useState(false);
+  const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
 
-    const openCreateProjectModal = () => {
-      setIsCreateProjectModalOpen(true);
-    };
-  
-    const closeCreateProjectModal = () => {
-      setIsCreateProjectModalOpen(false);
-    };
-  
-    const handleCreateProject = (formData) => {
-      // Handle project creation here, e.g., make an API request.
-      console.log('Creating project with data:', formData);
-      // Close the modal after successful project creation.
-      closeCreateProjectModal();
-    };
-  
+  const openCreateProjectModal = () => {
+    setIsCreateProjectModalOpen(true);
+  };
 
-    useEffect(() => {
-        // Fetch the list of projects
-        axios.get('http://localhost:8081/projects')
-            .then(response => {
-                if (response.data.projects)
-                    setProjects(response.data.projects);
-            })
-            .catch(error => {
-                console.error('Error fetching projects:', error);
-            });
+  const closeCreateProjectModal = () => {
+    setIsCreateProjectModalOpen(false);
+  };
 
-        // Check if the user can create a project
-        axios.get('http://localhost:8081/can_create_project')
-            .then(response => {
-                setCanCreateProject(response.data.canCreateProject);
-            })
-            .catch(error => {
-                console.error('Error checking permission to create project:', error);
-            });
-    }, []);
+  const handleCreateProject = (formData) => {
+    // Handle project creation here, e.g., make an API request.
+    console.log('Creating project with data:', formData);
+    // Close the modal after successful project creation.
+    closeCreateProjectModal();
+  };
 
-    return (
-        <div>
-            <Navbar />
-            <h1>Projects</h1>
-            {canCreateProject ? (
-                <button onClick={openCreateProjectModal}>Create Project</button>
-            ) : (
-                <button disabled>Create Project</button>
-            )}
-                    <CreateProjectModal
-          isOpen={isCreateProjectModalOpen}
-          onClose={closeCreateProjectModal}
-          onCreateProject={handleCreateProject}
-        />
-            <table>
-                <thead>
-                    <tr>
-                        <th>Project ID</th>
-                        <th>Project Name</th>
-                        <th>Description</th>
-                        <th>Owner Username</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {projects.map(project => (
-                        <tr key={project.project_id}>
-                            <td>{project.project_id}</td>
-                            <td>{project.project_name}</td>
-                            <td>{project.description}</td>
-                            <td>{project.owner_username}</td>
-                            <td>
-                                <button onClick={() => nav(`/project/${project.project_id}/details`)}>View Details</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+  useEffect(() => {
+    // Fetch the list of projects
+    axios
+      .get('http://localhost:8081/projects')
+      .then((response) => {
+        if (response.data.projects) setProjects(response.data.projects);
+      })
+      .catch((error) => {
+        console.error('Error fetching projects:', error);
+      });
+
+    // Check if the user can create a project
+    axios
+      .get('http://localhost:8081/can_create_project')
+      .then((response) => {
+        setCanCreateProject(response.data.canCreateProject);
+      })
+      .catch((error) => {
+        console.error('Error checking permission to create project:', error);
+      });
+  }, []);
+
+  const handleViewDetails = (projectId) => {
+    nav(`/project/${projectId}/details`);
+  };
+
+  return (
+    <div>
+      <Navbar />
+      <Button
+        disabled={!canCreateProject}
+        variant="contained"
+        onClick={openCreateProjectModal}
+        style={{ marginTop: '16px', marginBottom: '16px' }}
+      >
+        Create Project
+      </Button>
+      <CreateProjectModal
+        isOpen={isCreateProjectModalOpen}
+        onClose={closeCreateProjectModal}
+        onCreateProject={handleCreateProject}
+      />
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell style={{ fontWeight: 'bold', fontSize: 'large' }}>Project ID</TableCell>
+              <TableCell style={{ fontWeight: 'bold', fontSize: 'large' }}>Project Name</TableCell>
+              <TableCell style={{ fontWeight: 'bold', fontSize: 'large' }}>Description</TableCell>
+              <TableCell style={{ fontWeight: 'bold', fontSize: 'large' }}>Created By</TableCell>
+              <TableCell style={{ fontWeight: 'bold', fontSize: 'large' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {projects.map((project) => (
+              <TableRow key={project.project_id} hover>
+                <TableCell>{project.project_id}</TableCell>
+                <TableCell>{project.project_name}</TableCell>
+                <TableCell>{project.description}</TableCell>
+                <TableCell>{project.owner_username}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => handleViewDetails(project.project_id)}
+                  >
+                    View Details
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
+  );
 };
 
 export default Projects;
