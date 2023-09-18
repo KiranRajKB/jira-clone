@@ -128,7 +128,7 @@ const ProjectPeople = () => {
     }, [project_id]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', margin: "30px" }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div>
                 <Typography variant="h4" style={{margin: "20px"}}>
                     Project People

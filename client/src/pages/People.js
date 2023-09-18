@@ -120,7 +120,7 @@ const People = () => {
     };
 
     return (
-        <div>
+        <div style={{ display: 'flex', flexDirection: "column" }}>
             {/* <NavigationBar /> */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <TextField

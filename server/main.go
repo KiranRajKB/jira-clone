@@ -22,6 +22,10 @@ var contextKeyUsername = "username"
 const TOKEN_EXPIRY_IN_MINUTES = 100
 const adminUsername = "admin"
 const PORT = "8081"
+// const LOCALHOST = "0.0.0.0"
+const LOCALHOST = ""
+const HOST = "host.docker.internal"
+// const HOST = "localhost"
 
 func main() {
 	initDB()
@@ -66,12 +70,12 @@ func main() {
 	router.PUT("/project/:project_id/edit_issue", CheckEditIssueAccessMiddleware(), editIssue)                    // changed route (change in frontend)
 	router.DELETE("/project/:project_id/delete_issue/:issue_id", CheckDeleteIssueAccessMiddleware(), deleteIssue) // changed route (change in frontend)
 
-	router.Run("localhost:8081")
+	router.Run(LOCALHOST + ":" + PORT)
 }
 
 func corsMiddleware() gin.HandlerFunc {
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"} // Replace with your frontend's URL
+	config.AllowOrigins = []string{"*"} // Replace with your frontend's URL
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Authorization", "Content-Type"} // Allow the Authorization and Content-Type headers
 
@@ -854,7 +858,7 @@ func editIssue(c *gin.Context) {
 	}
 
 	type Issue struct {
-		IssueID     string   `json:"issue_id"`
+		IssueID string `json:"issue_id"`
 		// ProjectID   string   `json:"project_id"`
 		// ReportedBy  string   `json:"reported_by"`
 		Summary     string   `json:"summary"`
@@ -1544,7 +1548,7 @@ func getProjectsByUsername(c *gin.Context) { //checked
 }
 
 func initDB() { // checked
-	connStr := "user=postgres password=kiran dbname=postgres sslmode=disable"
+	connStr := "host=" + HOST + " port=5432 user=postgres password=kiran dbname=postgres sslmode=disable"
 	var err error
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {

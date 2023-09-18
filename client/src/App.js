@@ -58,37 +58,40 @@ function TempProject() {
 function TempHome() {
 
     return (
-        <div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
             <NavigationBar />
             {/* <div> */}
-            <Routes>
-                {/* <Route path="/project/:project_id/details" element={<ProjectDetails />} />
+            <div style={{  marginTop: "10vh" }}>
+                <Routes>
+                    {/* <Route path="/project/:project_id/details" element={<ProjectDetails />} />
                     <Route path="/project/:project_id/roles" element={<ProjectRoles />} />
                     <Route path="/project/:project_id/people" element={<ProjectPeople />} />
                     <Route path="/project/:project_id/issues" element={<ProjectIssues />} />
                     <Route path="/project/:project_id/delete_project" element={<ProjectDelete />} /> */}
-                <Route path="/project/:project_id/*" element={<TempProject />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/people" element={<People />} />
-                <Route path="/profile" element={<Profile />} />
-            </Routes>
+                    <Route path="/project/:project_id/*" element={<TempProject />} />
+                    <Route path="/projects" element={<Projects />} />
+                    <Route path="/people" element={<People />} />
+                    <Route path="/profile" element={<Profile />} />
+                </Routes>
+            </div>
             {/* </div> */}
         </div>
-        // <Container style={{ display: "flex", flexDirection: "column", margin: 0, padding: 0 }}>
+    );
+        /* // <Container style={{ display: "flex", flexDirection: "column", margin: 0, padding: 0 }}>
         //     <NavigationBar />
-        //     <Routes>
-        //         {/* <Route path="/project/:project_id/details" element={<ProjectDetails />} />
+        //     <Routes> */
+                {/* <Route path="/project/:project_id/details" element={<ProjectDetails />} />
         //         <Route path="/project/:project_id/roles" element={<ProjectRoles />} />
         //         <Route path="/project/:project_id/people" element={<ProjectPeople />} />
         //         <Route path="/project/:project_id/issues" element={<ProjectIssues />} />
         //         <Route path="/project/:project_id/delete_project" element={<ProjectDelete />} /> */}
-        //         <Route path="/project/:project_id/*" element={<TempProject />} />
+        {/* //         <Route path="/project/:project_id/*" element={<TempProject />} />
         //         <Route path="/projects" element={<Projects />} />
         //         <Route path="/people" element={<People />} />
         //         <Route path="/profile" element={<Profile />} />
         //     </Routes>
-        // </Container>
-    )
+        // </Container> */}
+    
 }
 
 function App() {

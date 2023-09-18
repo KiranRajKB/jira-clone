@@ -144,10 +144,10 @@ const ProjectIssues = () => {
     });
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', margin: "30px" }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div>
-                <Typography variant="h4" style={{ margin: "20px" }}>
-                    Project Isses
+                <Typography variant="h4">
+                    Project Issues
                 </Typography>
                 <div className={classes.searchContainer}>
                     <Button

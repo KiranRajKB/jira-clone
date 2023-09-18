@@ -23,8 +23,9 @@ function NavigationBar() {
     };
 
     return (
-        <AppBar position="static" color="primary" style={{height: "10vh", position: "fixed", display: "block", zIndex: 1000
-    }}>
+        <AppBar color="primary" style={{
+            height: "10vh", zindex: 1000
+        }}>
             <Toolbar>
                 <ul style={{ display: "flex", listStyle: "none", paddingLeft: 0 }}>
                     <li>
