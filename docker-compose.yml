@@ -10,6 +10,8 @@ services:
       - backend
     networks:
       - mynetwork
+    restart: always
+
   backend:
     build:
       context: ./server
@@ -18,5 +20,23 @@ services:
       - "8081:8081"
     networks:
       - mynetwork
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: kiran
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+    restart: always
+
 networks:
   mynetwork:

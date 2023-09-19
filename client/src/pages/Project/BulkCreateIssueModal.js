@@ -112,11 +112,8 @@ const BulkCreateIssueModal = ({ isOpen, onClose, projectID }) => {
                     onClick={onClose}
                     sx={{ marginLeft: '8px' }}
                 >
-                    <CancelIcon /> {/* Add CancelIcon as an IconButton */}
+                    <CancelIcon />
                 </IconButton>
-                {/* <Typography variant="caption" sx={{ marginLeft: '8px' }}>
-                    Cancel
-                </Typography> */}
             </Box>
         </Modal>
     );

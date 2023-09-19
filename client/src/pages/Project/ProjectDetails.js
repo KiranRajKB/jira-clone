@@ -12,12 +12,11 @@ import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles((theme) => ({
     container: {
-        // height: '88.5vh',
-        // display: 'flex',
-        // flexDirection: 'column',
+        display: 'flex',
+        flexDirection: 'column',
     },
     card: {
-        margin: theme.spacing(2),
+        margin: theme.spacing(1),
         flexGrow: 1,
     },
     title: {
@@ -64,11 +63,6 @@ const ProjectDetails = () => {
 
     return (
         <div className={classes.container}>
-            {/* <Navbar /> */}
-            {/* <Grid container className={classes.container}> */}
-                {/* <Grid item xs="auto">
-                    <Sidebar project_id={project_id} project_name={projectInfo?.project_name} />
-                </Grid> */}
                 <Grid item xs={true}>
                     <Card className={classes.card} elevation={3}>
                         <CardContent>
@@ -100,7 +94,6 @@ const ProjectDetails = () => {
                         </CardContent>
                     </Card>
                 </Grid>
-            {/* </Grid> */}
         </div>
     );
 };

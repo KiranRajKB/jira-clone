@@ -96,6 +96,7 @@ function TempHome() {
 
 function App() {
     const accessToken = localStorage.getItem("jwt_token");
+    if (!accessToken && window.location.pathname != "/login") window.location.assign("/login");
     axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
     // const nav = useNavigate();
@@ -144,20 +145,15 @@ function App() {
             return response;
         },
         (error) => {
-            console.log("ERROR : ", error.response);
+            console.log("ERRROR : ", error);
+            console.log("PRINTING ERRROR : ", error.response.data.error.toLowerCase())
             // Check if the error is due to an expired token
-            if (error.response.status === 401 && (1 || error.response.data.error.toLowerCase().contains("token"))) {
-                // Clear the expired token from localStorage
-                // localStorage.removeItem("jwt_token");
-                // setAccessToken(null);
-
-                // Use Navigate to redirect to the Login page
-                // return nav("/login");
-                // window.location.href = '/login';
+            if ((error.response.status === 401 || error.response.status === 400) && (error.response.data.error.toLowerCase().includes("token"))) {
+                window.alert("Session expired, please login again")
+                localStorage.removeItem("jwt_token");
+                window.location.href = '/login';
+                return Promise.reject(error);
             }
-
-            // Handle other types of errors
-            return Promise.reject(error);
         }
     );
 

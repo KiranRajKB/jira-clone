@@ -22,10 +22,18 @@ var contextKeyUsername = "username"
 const TOKEN_EXPIRY_IN_MINUTES = 100
 const adminUsername = "admin"
 const PORT = "8081"
+
 // const LOCALHOST = "0.0.0.0"
 const LOCALHOST = ""
-const HOST = "host.docker.internal"
+
+// const HOST = "host.docker.internal"
 // const HOST = "localhost"
+const HOST = "postgres"
+
+const ADMIN_USERNAME = "admin"
+const ADMIN_PASSWORD = "admin"
+const ADMIN_NAME = "admin"
+const ADMIN_EMAIL = "admin@gmail.com"
 
 func main() {
 	initDB()
@@ -112,7 +120,7 @@ func JWTMiddleware() gin.HandlerFunc {
 
 		// Check for parsing errors
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "error verifying token"})
 			c.Abort()
 			return
 		}
@@ -438,7 +446,7 @@ func addProjectPeople(c *gin.Context) {
 
 	var formData AddProjectPeopleForm
 	if err := c.ShouldBind(&formData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match the expected format"})
 		return
 	}
 
@@ -446,7 +454,7 @@ func addProjectPeople(c *gin.Context) {
 	_, insertErr := db.Exec(insertQuery, projectID, formData.PersonRole, formData.PersonUsername)
 	if insertErr != nil {
 		fmt.Println("error : ", insertErr)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": insertErr.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error adding people to project"})
 		return
 	}
 
@@ -462,7 +470,7 @@ func removeProjectPeople(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 
@@ -495,7 +503,7 @@ func isProjectOwner(c *gin.Context) {
 	var exists bool
 	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM project_user_role WHERE project_id = $1 AND role_name = 'Owner' AND username = $2)", projectID, username).Scan(&exists)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -518,7 +526,7 @@ func AddProjectRole(c *gin.Context) {
 
 	var role Role
 	if err := c.ShouldBindJSON(&role); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected"})
 		return
 	}
 	fmt.Println(role)
@@ -539,7 +547,7 @@ func AddProjectRole(c *gin.Context) {
 		role.Assignable,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -558,7 +566,7 @@ func canCreateProject(c *gin.Context) {
 	query := "SELECT can_create_project FROM users WHERE username = $1"
 	err := db.QueryRow(query, username).Scan(&canCreateProject)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -582,7 +590,7 @@ func editProfile(c *gin.Context) {
 	// Parse the request body into the ProfileUpdate struct
 	var updateData ProfileUpdate
 	if err := c.ShouldBindJSON(&updateData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 
@@ -597,7 +605,7 @@ func editProfile(c *gin.Context) {
 	`
 	_, err := db.Exec(updateQuery, updateData.Name, updateData.Email, username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -614,16 +622,9 @@ func deleteIssue(c *gin.Context) {
 	`
 	_, err := db.Exec(deleteQuery, issueID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "input data did not match expected format"})
 		return
 	}
-
-	// Also delete associated tags
-	// _, err = db.Exec("DELETE FROM issue_tags WHERE issue_id = $1", issueID)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
 
 	c.JSON(http.StatusOK, gin.H{"message": "Issue deleted successfully"})
 }
@@ -687,14 +688,14 @@ func addIssue(c *gin.Context) {
 
 	var newIssue Issue
 	if err := c.ShouldBindJSON(&newIssue); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 
 	// Check if assignee has asignable permission
 	permissions, err := getRolePermissionsHelper(projectID, newIssue.Assignee)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	if !permissions.Assignable {
@@ -729,7 +730,7 @@ func addIssue(c *gin.Context) {
 		newIssue.Status,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -741,7 +742,7 @@ func addIssue(c *gin.Context) {
 	for _, tag := range newIssue.Tags {
 		_, err = db.Exec(insertTagsQuery, newIssue.IssueID, tag)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
 	}
@@ -774,14 +775,14 @@ func bulkAddIssues(c *gin.Context) {
 
 	var bulkRequest BulkIssueRequest
 	if err := c.ShouldBindJSON(&bulkRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 
 	// Start a database transaction
 	tx, err := db.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	defer tx.Rollback() // Rollback the transaction if any error occurs
@@ -804,7 +805,7 @@ func bulkAddIssues(c *gin.Context) {
 	_, err = tx.Exec(insertIssueQuery, issueValues...)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -836,12 +837,12 @@ func bulkAddIssues(c *gin.Context) {
 	_, err = tx.Exec(insertTagsQuery, tagValues...)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -870,13 +871,13 @@ func editIssue(c *gin.Context) {
 
 	var updatedIssue Issue
 	if err := c.ShouldBindJSON(&updatedIssue); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 
 	permissions, err := getRolePermissionsHelper(projectID, updatedIssue.Assignee)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	if !permissions.Assignable {
@@ -934,7 +935,7 @@ func editIssue(c *gin.Context) {
 	`
 	_, err = db.Exec(updateQuery, updatedIssue.Summary, updatedIssue.Description, updatedIssue.Assignee, updatedIssue.Status, updatedIssue.IssueID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -944,7 +945,7 @@ func editIssue(c *gin.Context) {
 	`
 	_, err = db.Exec(deleteTagsQuery, updatedIssue.IssueID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -955,7 +956,7 @@ func editIssue(c *gin.Context) {
 	for _, tag := range updatedIssue.Tags {
 		_, err = db.Exec(insertTagsQuery, updatedIssue.IssueID, tag)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
 	}
@@ -1072,7 +1073,7 @@ func canDeleteProject(c *gin.Context) {
 	query := "SELECT role_name FROM project_user_role WHERE project_id = $1 and username = $2"
 	var rolename string
 	if err := db.QueryRow(query, projectID, username).Scan(&rolename); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -1132,7 +1133,7 @@ func getAllPeople(c *gin.Context) {
 	`
 	rows, err := db.Query(query)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	defer rows.Close()
@@ -1185,7 +1186,7 @@ func getProjectPeople(c *gin.Context) {
 	`
 	rows, err := db.Query(query, projectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	defer rows.Close()
@@ -1284,7 +1285,7 @@ func getProjectRoles(c *gin.Context) { // checked
 `
 	rows, err := db.Query(query, projectID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	defer rows.Close()
@@ -1433,7 +1434,7 @@ func createProject(c *gin.Context) { // checked
 
 	tx, err := db.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -1450,7 +1451,7 @@ func createProject(c *gin.Context) { // checked
 	)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -1471,7 +1472,7 @@ func createProject(c *gin.Context) { // checked
 	)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -1480,7 +1481,7 @@ func createProject(c *gin.Context) { // checked
 	_, err = tx.Exec(insertQuery, project.ProjectID, "Owner", adminUsername)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -1488,13 +1489,13 @@ func createProject(c *gin.Context) { // checked
 		_, err = tx.Exec(insertQuery, project.ProjectID, "Owner", ownerUsername)
 		if err != nil {
 			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -1560,6 +1561,24 @@ func initDB() { // checked
 		panic(err)
 	}
 	fmt.Println("Connected to the database")
+
+	createAdmin()
+}
+
+func createAdmin() bool {
+	hashedPassword, err := hashPassword(ADMIN_PASSWORD)
+	if err != nil {
+		return false
+	}
+
+	// Insert admin into the database
+	_, err = db.Exec("INSERT INTO users (username, password, name, email, can_create_project) VALUES ($1, $2, $3, $4, $5)",
+		ADMIN_USERNAME, hashedPassword, ADMIN_NAME, ADMIN_EMAIL, true)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 func createUser(c *gin.Context) { // checked
@@ -1573,7 +1592,7 @@ func createUser(c *gin.Context) { // checked
 
 	var user User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 
@@ -1621,14 +1640,14 @@ func bulkCreateUsers(c *gin.Context) { // checked
 
 	var bulkRequest BulkUserRequest
 	if err := c.ShouldBindJSON(&bulkRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 
 	// Start a database transaction
 	tx, err := db.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 	defer tx.Rollback() // Rollback the transaction if any error occurs
@@ -1656,12 +1675,12 @@ func bulkCreateUsers(c *gin.Context) { // checked
 	_, err = tx.Exec(insertUserQuery, userValues...)
 	if err != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
 
@@ -1675,7 +1694,7 @@ func loginUser(c *gin.Context) { // checked
 	}
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "input data did not match expected format"})
 		return
 	}
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Modal from 'react-modal';
+import Modal from '@mui/material/Modal';
 import axios from 'axios';
 import {
     Typography,
@@ -15,31 +15,33 @@ const modalStyle = {
     alignItems: 'center',
     padding: '16px',
     outline: 'none',
-    minWidth: '300px',
-    maxWidth: '400px',
+    width: '500px',
     margin: 'auto',
     backgroundColor: 'white',
     borderRadius: '8px',
+    marginTop: '100px',
 };
 
 const titleStyle = {
-    fontSize: '24px',
+    fontSize: '30px',
     marginBottom: '16px',
+    fontWeight: "bold"
 };
 
 const formFieldStyle = {
     marginBottom: '16px',
+    width: '400px'
 };
 
-const formTextareaStyle = {
-    marginBottom: '16px',
-    width: '100%',
-    padding: '8px',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-    fontSize: '16px',
-    resize: 'vertical',
-};
+// const formTextareaStyle = {
+//     marginBottom: '16px',
+//     width: '100%',
+//     padding: '8px',
+//     border: '1px solid #ccc',
+//     borderRadius: '4px',
+//     fontSize: '16px',
+//     resize: 'vertical',
+// };
 
 const submitButtonStyle = {
     backgroundColor: '#1976D2',
@@ -85,9 +87,10 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
 
     return (
         <Modal
-            isOpen={isOpen}
-            onRequestClose={onClose}
-            contentLabel="Create Project Modal"
+            open={isOpen}
+            onClose={onClose}
+            aria-labelledby="create-project-modal"
+            aria-describedby="create-project-description"
         >
             <Container style={modalStyle}>
                 <Typography variant="h4" style={titleStyle}>
@@ -120,21 +123,20 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
                         />
                     </div>
                     <div style={formFieldStyle}>
-                        <TextareaAutosize
-                            id="description"
+                        <TextField //resolve
+                            label="Description"
+                            variant="outlined"
                             name="description"
+                            multiline
+                            rows={4}
                             value={formData.description}
                             onChange={handleChange}
-                            required
-                            style={formTextareaStyle}
-                            rowsMin={4}
-                            placeholder="Description"
                         />
                     </div>
                     <div style={formFieldStyle}>
                         <TextField
                             type="text"
-                            label="Project Lead"
+                            label="Created By"
                             id="projectLead"
                             name="projectLead"
                             value={formData.projectLead}

@@ -20,40 +20,8 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton'; // Import IconButton
 import AddIcon from '@mui/icons-material/Add'; // Import the Add icon from Material-UI icons
 
-const useStyles = makeStyles((theme) => ({
-    // container: {
-    //     minHeight: '100vh',
-    //     display: 'flex',
-    //     flexDirection: 'column',
-    // },
-    // card: {
-    //     margin: theme.spacing(2),
-    //     flexGrow: 1,
-    // },
-    // title: {
-    //     fontSize: '1.5rem',
-    //     fontWeight: 'bold',
-    //     marginBottom: theme.spacing(2),
-    // },
-    // searchContainer: {
-    //     display: 'flex',
-    //     alignItems: 'center',
-    //     justifyContent: 'space-between', // Align items and push button to the right
-    //     marginBottom: theme.spacing(2),
-    // },
-    // searchBar: {
-    //     marginRight: theme.spacing(2),
-    // },
-    // addButton: {
-    //     // Align the button to the right
-    // },
-    // table: {
-    //     marginTop: theme.spacing(2),
-    // },
-}));
 
 const ProjectPeople = () => {
-    const classes = useStyles();
 
     const { project_id } = useParams();
     const [people, setPeople] = useState([]);
@@ -130,13 +98,12 @@ const ProjectPeople = () => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div>
-                <Typography variant="h4" style={{margin: "20px"}}>
+                <Typography variant="h4" style={{marginBottom: "20px"}}>
                     Project People
                 </Typography>
                 <Container>
                     <div style={{display: "flex", flexDirection: "row"}}>
                         <TextField
-                            className={classes.searchBar}
                             label="Search..."
                             variant="outlined"
                             value={searchTerm}
@@ -145,7 +112,6 @@ const ProjectPeople = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            className={classes.addButton}
                             onClick={handleOpenAddPeopleModal}
                             disabled={!isProjectOwner}
                             style={{marginLeft: "100px"}}
@@ -156,7 +122,7 @@ const ProjectPeople = () => {
                     {loading ? (
                         <p>Loading project people...</p>
                     ) : (
-                        <TableContainer className={classes.table} style={{marginTop: "20px"}}>
+                        <TableContainer  style={{marginTop: "20px"}}>
                             <Table>
                                 <TableHead>
                                     <TableRow>

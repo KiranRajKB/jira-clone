@@ -81,9 +81,9 @@ const ProjectRoles = () => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', margin: "30px" }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div>
-            <Typography variant="h4" style={{margin: "20px"}}>
+            <Typography variant="h4" style={{marginBottom: "20px"}}>
                     Project Roles
                 </Typography>
                 <Button

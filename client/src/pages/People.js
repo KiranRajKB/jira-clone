@@ -18,7 +18,8 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import CreateUserModal from './CreateUserModal';
 import BulkUploadUsers from './BulkCreateUsersModal';
-
+import CheckIcon from '@mui/icons-material/Check'; // Import the Check icon from Material-UI icons
+import ClearIcon from '@mui/icons-material/Clear'; // Import the Clear icon from Material-UI icons
 
 const People = () => {
     const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
@@ -121,7 +122,6 @@ const People = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: "column" }}>
-            {/* <NavigationBar /> */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <TextField
                     variant="outlined"
@@ -148,16 +148,16 @@ const People = () => {
                             Bulk Upload
                         </Button>
 
-                        {/* User Creation Modal */}
                         <CreateUserModal
                             isOpen={isCreateUserModalOpen}
                             onClose={() => setIsCreateUserModalOpen(false)}
+                            setPeople={setPeople}
                         />
 
-                        {/* Bulk Upload Modal */}
                         <BulkUploadUsers
                             isOpen={isBulkUploadModalOpen}
                             onClose={() => setIsBulkUploadModalOpen(false)}
+                            setPeople={setPeople}
                         />
                     </>
 
@@ -177,7 +177,6 @@ const People = () => {
                                     <>
                                         <TableCell style={{ fontWeight: 'bold', fontSize: 'large' }}>Create Project Permission</TableCell>
                                         <TableCell style={{ fontWeight: 'bold', fontSize: 'large' }}>Actions</TableCell>
-
                                     </>
                                 )}
                             </TableRow>
@@ -197,21 +196,22 @@ const People = () => {
                                         <TableCell>{person.email}</TableCell>
                                         {username === 'admin' && (
                                             <>
-                                                <TableCell>{person.canCreateProject? "yes" : "no"}</TableCell>
                                                 <TableCell>
-                                                    <Button variant="contained" color="secondary" onClick={() => handleDeleteUser(person.username)} disabled={person.username == "admin"}>
+                                                    {person.canCreateProject ? <CheckIcon /> : <ClearIcon />}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Button variant="contained" color="secondary" onClick={() => handleDeleteUser(person.username)} disabled={person.username === "admin"}>
                                                         Delete
                                                     </Button>
-                                                    {
-                                                        person.active ?
-                                                            <Button variant="contained" color="warning" onClick={() => handleDeactivateUser(person.username)} disabled={person.username == "admin"}>
-                                                                Deactivate
-                                                            </Button> :
-                                                            <Button variant="contained" color="primary" onClick={() => handleActivateUser(person.username)} >
-                                                                Activate
-                                                            </Button>
-                                                    }
-
+                                                    {person.active ? (
+                                                        <Button variant="contained" color="warning" onClick={() => handleDeactivateUser(person.username)} disabled={person.username === "admin"}>
+                                                            Deactivate
+                                                        </Button>
+                                                    ) : (
+                                                        <Button variant="contained" color="primary" onClick={() => handleActivateUser(person.username)}>
+                                                            Activate
+                                                        </Button>
+                                                    )}
                                                 </TableCell>
                                             </>
                                         )}

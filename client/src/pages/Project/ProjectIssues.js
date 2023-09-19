@@ -23,6 +23,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import { Chip } from '@mui/material';
 
 const useStyles = makeStyles((theme) => ({
     container: {
@@ -172,7 +173,7 @@ const ProjectIssues = () => {
                     >
                         Bulk Create Issues
                     </Button>
-                    
+
                     <TextField
                         label="Search by Keyword"
                         variant="outlined"
@@ -211,7 +212,11 @@ const ProjectIssues = () => {
                                         <TableCell className={classes.tableCell}>{issue.status}</TableCell>
                                         <TableCell className={classes.tableCell}>{issue.reported_by}</TableCell>
                                         <TableCell className={classes.tableCell}>{issue.assignee}</TableCell>
-                                        <TableCell className={classes.tableCell}>{issue.tags?.join(', ')}</TableCell>
+                                        <TableCell className={classes.tableCell}>
+                                            {issue.tags?.map((tag, index) => (
+                                                <Chip key={index} label={tag} variant="outlined"  style={{ margin: "2px" }} />
+                                            ))}
+                                        </TableCell>
                                         <TableCell className={classes.tableCell}>
                                             <Button
                                                 variant="outlined"

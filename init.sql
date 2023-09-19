@@ -1,5 +1,4 @@
 
--- Drop the child tables first
 DROP TABLE IF EXISTS issue_tags;
 DROP TABLE IF EXISTS issues;
 DROP TABLE IF EXISTS project_user_role;
@@ -7,8 +6,6 @@ DROP TABLE IF EXISTS Roles;
 DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS user_groups;
 DROP TABLE IF EXISTS groups;
-
--- Drop the parent table last
 DROP TABLE IF EXISTS Users;
 
 

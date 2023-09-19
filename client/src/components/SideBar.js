@@ -40,7 +40,13 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
     },
     icon: {
-        marginRight: '8px', // Adjust the spacing between the icon and text as needed
+        marginRight: '8px',
+    },
+    disabledLink: {
+        pointerEvents: 'none', // Disable pointer events
+        opacity: 0.5, // Reduce opacity to indicate it's disabled
+        textDecoration: 'none', // Remove underline
+        color: theme.palette.text.disabled, // Use disabled text color
     },
 }));
 
@@ -75,8 +81,8 @@ const Sidebar = ({ project_id, project_name }) => {
                 <ListItem
                     component="div"
                     className={`${classes.listItem} ${location.pathname === `/project/${project_id}/details`
-                            ? classes.activeListItem
-                            : ''
+                        ? classes.activeListItem
+                        : ''
                         }`}
                 >
                     <NavLink
@@ -92,8 +98,8 @@ const Sidebar = ({ project_id, project_name }) => {
                 <ListItem
                     component="div"
                     className={`${classes.listItem} ${location.pathname === `/project/${project_id}/issues`
-                            ? classes.activeListItem
-                            : ''
+                        ? classes.activeListItem
+                        : ''
                         }`}
                 >
                     <NavLink
@@ -109,8 +115,8 @@ const Sidebar = ({ project_id, project_name }) => {
                 <ListItem
                     component="div"
                     className={`${classes.listItem} ${location.pathname === `/project/${project_id}/people`
-                            ? classes.activeListItem
-                            : ''
+                        ? classes.activeListItem
+                        : ''
                         }`}
                 >
                     <NavLink
@@ -126,8 +132,8 @@ const Sidebar = ({ project_id, project_name }) => {
                 <ListItem
                     component="div"
                     className={`${classes.listItem} ${location.pathname === `/project/${project_id}/roles`
-                            ? classes.activeListItem
-                            : ''
+                        ? classes.activeListItem
+                        : ''
                         }`}
                 >
                     <NavLink
@@ -143,13 +149,13 @@ const Sidebar = ({ project_id, project_name }) => {
                 <ListItem
                     component="div"
                     className={`${classes.listItem} ${location.pathname === `/project/${project_id}/delete_project`
-                            ? classes.activeListItem
-                            : ''
+                        ? classes.activeListItem
+                        : ''
                         }`}
                 >
                     <NavLink
                         to={`/project/${project_id}/delete_project`}
-                        className={classes.listItemContent}
+                        className={`${classes.listItemContent} ${!canDeleteProject && classes.disabledLink}`}
                     >
                         <div className={classes.icon}>
                             <DeleteIcon />
