@@ -1,62 +1,76 @@
-Welcome to TASK MANAGEMENT SYSTEM!!!
+# Task Management System
 
-An admin account is created by default when this application is run for the first time.
-USERNAME : admin
-PASSWORD : admin
-Login as admin to create new users.
+Welcome to the Task Management System!
 
-The navigation bar contains 4 sections.
-1) Home Page - a brief introduction
-2) Projects - list of projects to which the user has access ( admin has access to all the projects )
-When the user is created, admin has the option to choose if the user has the permission to create projects.
-If the user has permission, 'Create Project' button will be enabled. ( admin has permission to create projects )
+An admin account is automatically created when you run this application for the first time. You can use the following credentials to access the admin account:
 
-Each project contains a list of issues.
-When a project is opened, the following sections appear in the sidebar:
-a) Details about the project
-b) Issues - all the issues created within the project
-If the user has 'create issue' permission in this project, 'Create issue' and 'Bulk Create issues' button will be enabled.
-When bulk uploading issues using a csv file, please make sure the header of the file is in the format mentioned below:
-ReportedBy,Summary,Description,Assignee,Status,Tags
-A sample csv file (issues.csv) is attached.
-c) People - all the active users who have access to this project, along with the role the user is assigned in this project.
-d) Role - role determines the permissions a user has in the project.
-There are total of 6 permissions: 
-    i) Create issue
-    ii) Edit issue - 
-        NOTE : With only edit issue permission, you cannot change the status of the issue.
-        You also need transition issue permission to change status.
-    iii) Transition issue - 
-        each issue can be in any of the following states:
-            opened
-            in progress
-            completed
-            closed
-        When an issue is created, the status is 'opened'.
-        Later the status of the issue can be changed (transitioned) by users who have 'Transition issue' permission in the project.
-        NOTE : With transition permission, you can only change the status to any of the following:
-            opened, in progress, completed
-            To change the status to 'closed', you would required 'Close issue' permission in the project.
-    iv) Delete issue
-    v) Assignable - only users who have assignable permission in the project can be assigned any issues.
+**Admin Credentials:**
+- Username: admin
+- Password: admin
 
-    When a project is created, a special role 'Owner' is created by default.
-    The admin and the user who created the project have that role in the project.
+## Getting Started
 
-    'Owner' role has exclusive access to the following:
-        1) Add people to the project
-        2) Remove people from the project (cannot remove admin)
-        3) Delete project
+To get started, log in as an admin to create new users and manage projects.
 
-3) People - information about all the active users (ie does not include users who are deactivated) - admin has the permissions to delete and deactivate users.
-If a user is deleted, all the projects created by them will also be deleted.
-If a user is deactivated, the user will not appear in any searches. The user will continue to be a part of the projects that they are part of. The user cannot login when their account is deactivated. The user cannot be assigned any issues.
-When logged in as admin, the page also displays 2 buttons - create user & bulk upload.
-When creating a user, make sure the username and email are unique.
-When bulk uploading using a csv file, please make sure the header of the file is in the format mentioned below:
-username,name,email,password,canCreateProject
-You can find a sample csv file in the project ( users.csv )
+## Navigation
 
-4) Profile - the user can edit personal info, and log out of the system.
+The navigation bar is divided into four essential sections, making it easy to navigate through the system:
 
+1. **Home Page:** Get acquainted with the Task Management System through a brief introduction.
+
+2. **Projects:** This section lists all the projects you have access to. Notably, the admin has access to all projects.
+
+    - If you have permission to create projects, you'll find the 'Create Project' button enabled.
+
+    - Within each project, you'll discover a comprehensive list of issues.
+
+3. **People:** Access information about all active users, excluding those who are deactivated. Admins have the ability to delete and deactivate users.
+
+    - When a user is deleted, all projects they created are also removed.
+
+    - Deactivated users remain in existing projects but are hidden from searches. They cannot log in or be assigned any issues.
+
+4. **Profile:** In this section, users can edit their personal information and log out.
+
+## Project Details
+
+When you open a project, you'll find the following sections in the sidebar:
+
+- **Details:** This section provides essential information about the project.
+
+- **Issues:** Here, you'll find a comprehensive list of all issues created within the project.
+
+    - If you possess 'create issue' permission, you'll have access to the 'Create issue' and 'Bulk Create issues' buttons.
+
+    - When bulk uploading issues using a CSV file, ensure that the header of the file adheres to this format:
+
+        ```
+        ReportedBy,Summary,Description,Assignee,Status,Tags
+        ```
+
+- **People:** This section lists all active users who have access to the project and details their roles within the project.
+
+- **Roles:** Roles play a pivotal role in defining user permissions within a project. These permissions include:
+
+    - Create issue
+    - Edit issue (note: changing the status requires 'transition issue' permission)
+    - Transition issue (ability to change status to opened, in progress, or completed; changing status to 'closed' requires 'close issue' permission)
+    - Close issue
+    - Delete issue
+    - Assignable (can be assigned issues)
+
+    When a project is created, a special role called 'Owner' is automatically assigned to the admin and the project creator.
+
+    The 'Owner' role enjoys exclusive privileges, such as:
+
+    - Adding people to the project
+    - Removing people from the project (excluding admin)
+    - Deleting the entire project
+
+This README provides a comprehensive overview of the Task Management System. Use this information to effectively manage projects, users, and roles within the system.
+
+---
+
+
+**Note:** For CSV file formats and samples (users.csv and issues.csv), please refer to the project files.
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/M4NvrXuV)
