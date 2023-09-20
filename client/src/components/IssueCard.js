@@ -225,6 +225,14 @@ const IssueDialog = ({ selectedIssue, isOpen, closeModal }) => {
                                 {assignee.username}
                             </MenuItem>
                         ))}
+                        {(!assignees.map(assignee => assignee.username).includes(issueData.assignee) || true) &&
+                            <MenuItem
+                                key={issueData.assignee}
+                                value={issueData.assignee}
+                                disabled={true}
+                            >
+                                {issueData.assignee}
+                            </MenuItem>}
                     </Select>
                 </FormControl>
                 <TextField

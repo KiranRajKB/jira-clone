@@ -18,24 +18,12 @@ CREATE TABLE Users (
     active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE groups (
-    group_name VARCHAR(255) PRIMARY KEY NOT NULL
-);
-
-CREATE TABLE user_groups (
-    username VARCHAR(255) NOT NULL,
-    group_name VARCHAR(255) NOT NULL,
-    PRIMARY KEY (username, group_name),
-    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE,
-    FOREIGN KEY (group_name) REFERENCES groups(group_name) ON DELETE CASCADE
-);
-
 CREATE TABLE projects (
     project_id VARCHAR PRIMARY KEY NOT NULL,
     project_name VARCHAR NOT NULL,
     description TEXT NOT NULL,
     owner_username VARCHAR NOT NULL,
-    FOREIGN KEY (owner_username) REFERENCES Users(username) ON DELETE CASCADE
+    FOREIGN KEY (owner_username) REFERENCES Users(username) ON DELETE SET NULL
 );
 
 CREATE TABLE Roles (

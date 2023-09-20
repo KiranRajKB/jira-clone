@@ -34,7 +34,7 @@ const AddPeopleModal = ({ isOpen, onClose, projectID, projectPeople }) => {
             .get('http://localhost:8081/people')
             .then((response) => {
                 if (response.status === 200) {
-                    setPeopleOptions(response.data.people);
+                    setPeopleOptions(response.data.people.filter(person => person.active));
                 }
             })
             .catch((error) => {

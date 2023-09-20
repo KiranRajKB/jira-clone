@@ -413,7 +413,8 @@ func GetAssignableUsers(c *gin.Context) {
 	SELECT pur.username, r.assignable
 	FROM project_user_role pur
 	JOIN roles r ON pur.project_id = r.project_id AND pur.role_name = r.role_name
-	WHERE pur.project_id = $1
+	JOIN users u ON u.username = pur.username
+	WHERE pur.project_id = $1 and u.active = true
 	`
 
 	rows, err := db.Query(query, projectID)
