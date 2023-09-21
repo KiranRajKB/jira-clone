@@ -18,8 +18,8 @@ const useStyles = makeStyles((theme) => ({
         color: theme.palette.primary.contrastText,
         width: '18vw',
         minHeight: '90vh',
-        position: 'fixed', // Make the sidebar fixed
-        top: '10vh', // Stick it to the top of the viewport
+        position: 'fixed',
+        top: '10vh',
         zindex: 1000
     },
     projectTitle: {
@@ -43,10 +43,10 @@ const useStyles = makeStyles((theme) => ({
         marginRight: '8px',
     },
     disabledLink: {
-        pointerEvents: 'none', // Disable pointer events
-        opacity: 0.5, // Reduce opacity to indicate it's disabled
-        textDecoration: 'none', // Remove underline
-        color: theme.palette.text.disabled, // Use disabled text color
+        pointerEvents: 'none',
+        opacity: 0.5,
+        textDecoration: 'none',
+        color: theme.palette.text.disabled,
     },
 }));
 

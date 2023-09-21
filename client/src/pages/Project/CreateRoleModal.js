@@ -7,7 +7,7 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Button from '@mui/material/Button';
 import CheckIcon from '@mui/icons-material/Check';
-import ClearIcon from '@mui/icons-material/Clear'; // Different icons
+import ClearIcon from '@mui/icons-material/Clear';
 import axios from 'axios';
 
 const CreateRoleModal = ({ project_id, isOpen, onClose }) => {
@@ -87,8 +87,8 @@ const CreateRoleModal = ({ project_id, isOpen, onClose }) => {
                                 name="create_issue"
                                 checked={formData.create_issue}
                                 onChange={handleChange}
-                                icon={<ClearIcon />} // Different icons
-                                checkedIcon={<CheckIcon color="primary" />} // Different icons
+                                icon={<ClearIcon />}
+                                checkedIcon={<CheckIcon color="primary" />}
                             />
                         }
                         label="Create Issue"
@@ -101,8 +101,8 @@ const CreateRoleModal = ({ project_id, isOpen, onClose }) => {
                                 name="edit_issue"
                                 checked={formData.edit_issue}
                                 onChange={handleChange}
-                                icon={<ClearIcon />} // Different icons
-                                checkedIcon={<CheckIcon color="primary" />} // Different icons
+                                icon={<ClearIcon />}
+                                checkedIcon={<CheckIcon color="primary" />}
                                 disabled={formData.transition_issue}
                             />
                         }
@@ -116,8 +116,8 @@ const CreateRoleModal = ({ project_id, isOpen, onClose }) => {
                                 name="transition_issue"
                                 checked={formData.transition_issue}
                                 onChange={handleChange}
-                                icon={<ClearIcon />} // Different icons
-                                checkedIcon={<CheckIcon color="primary" />} // Different icons
+                                icon={<ClearIcon />}
+                                checkedIcon={<CheckIcon color="primary" />}
                                 disabled={formData.close_issue  }
                             />
                         }
@@ -131,8 +131,8 @@ const CreateRoleModal = ({ project_id, isOpen, onClose }) => {
                                 name="close_issue"
                                 checked={formData.close_issue}
                                 onChange={handleChange}
-                                icon={<ClearIcon />} // Different icons
-                                checkedIcon={<CheckIcon color="primary" />} // Different icons
+                                icon={<ClearIcon />}
+                                checkedIcon={<CheckIcon color="primary" />}
                             />
                         }
                         label="Close Issue"
@@ -145,8 +145,8 @@ const CreateRoleModal = ({ project_id, isOpen, onClose }) => {
                                 name="delete_issue"
                                 checked={formData.delete_issue}
                                 onChange={handleChange}
-                                icon={<ClearIcon />} // Different icons
-                                checkedIcon={<CheckIcon color="primary" />} // Different icons
+                                icon={<ClearIcon />}
+                                checkedIcon={<CheckIcon color="primary" />}
                             />
                         }
                         label="Delete Issue"
@@ -159,8 +159,8 @@ const CreateRoleModal = ({ project_id, isOpen, onClose }) => {
                                 name="assignable"
                                 checked={formData.assignable}
                                 onChange={handleChange}
-                                icon={<ClearIcon />} // Different icons
-                                checkedIcon={<CheckIcon color="primary" />} // Different icons
+                                icon={<ClearIcon />}
+                                checkedIcon={<CheckIcon color="primary" />}
                             />
                         }
                         label="Assignable"

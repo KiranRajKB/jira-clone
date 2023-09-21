@@ -225,7 +225,7 @@ const IssueDialog = ({ selectedIssue, isOpen, closeModal }) => {
                                 {assignee.username}
                             </MenuItem>
                         ))}
-                        {(!assignees.map(assignee => assignee.username).includes(issueData.assignee) || true) &&
+                        {(!assignees.map(assignee => assignee.username).includes(issueData.assignee)) &&
                             <MenuItem
                                 key={issueData.assignee}
                                 value={issueData.assignee}

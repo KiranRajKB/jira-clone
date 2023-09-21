@@ -40,17 +40,18 @@ const BulkUploadUsers = ({ isOpen, onClose, setPeople }) => {
                         toast.success("Users created successfully", {
                             autoClose: 1000,
                         });
+                        result.data = result.data.map(user => { return { ...user, active: true } });
                         setPeople((oldPeople) => [...oldPeople, ...result.data]);
                         onClose();
                         setCsvFile(null);
                     } else {
-                        toast.error("Some username already exists", {
+                        toast.error("Some username or email already exists", {
                             autoClose: 1000,
                         });
                     }
                 } catch (error) {
                     console.error('Error uploading CSV:', error);
-                    toast.error("Some username already exists", {
+                    toast.error("Some username or email already exists", {
                         autoClose: 1000,
                     });
                 }
@@ -90,7 +91,7 @@ const BulkUploadUsers = ({ isOpen, onClose, setPeople }) => {
                 <Button
                     variant="contained"
                     color="primary"
-                    startIcon={<CloudUploadIcon />} // Add CloudUploadIcon as the start icon
+                    startIcon={<CloudUploadIcon />}
                     onClick={handleUpload}
                 >
                     Upload

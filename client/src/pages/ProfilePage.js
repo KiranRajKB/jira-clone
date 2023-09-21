@@ -73,7 +73,6 @@ const Profile = () => {
 
   return (
     <div>
-      {/* <NavigationBar /> */}
       <Paper elevation={3} style={{ margin: 'auto', marginTop: '20px', padding: '20px', maxWidth: '400px' }}>
         <List>
           <ListItem>
@@ -85,6 +84,7 @@ const Profile = () => {
                 label="Username"
                 fullWidth
                 disabled
+                required
               />
             ) : (
               <ListItemText primary="Username" secondary={user.username} />
@@ -98,6 +98,7 @@ const Profile = () => {
                 onChange={handleInputChange}
                 label="Name"
                 fullWidth
+                required
               />
             </ListItem>
           ) : (
@@ -113,6 +114,7 @@ const Profile = () => {
                 onChange={handleInputChange}
                 label="Email"
                 fullWidth
+                required
               />
             </ListItem>
           ) : (

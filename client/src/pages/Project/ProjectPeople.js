@@ -17,8 +17,8 @@ import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
-import IconButton from '@mui/material/IconButton'; // Import IconButton
-import AddIcon from '@mui/icons-material/Add'; // Import the Add icon from Material-UI icons
+import IconButton from '@mui/material/IconButton';
+import AddIcon from '@mui/icons-material/Add';
 
 
 const ProjectPeople = () => {

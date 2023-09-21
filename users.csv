@@ -1,2 +1,4 @@
 username,name,email,password,canCreateProject
-user19,user19,user19@gmail.com,password19,true
+user1,user1,user1@gmail.com,password1,true
+user2,user2,user2@gmail.com,password2,false
+user3,user3,user3@gmail.com,password3,true

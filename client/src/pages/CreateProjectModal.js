@@ -131,6 +131,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
                             rows={4}
                             value={formData.description}
                             onChange={handleChange}
+                            required
                         />
                     </div>
                     <div style={formFieldStyle}>
@@ -143,6 +144,7 @@ const CreateProjectModal = ({ isOpen, onClose }) => {
                             onChange={handleChange}
                             disabled
                             fullWidth
+                            required
                         />
                     </div>
                     <Button

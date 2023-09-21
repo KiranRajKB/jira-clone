@@ -11,7 +11,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close'; // Material-UI CloseIcon
+import CloseIcon from '@mui/icons-material/Close';
 import Autocomplete from '@mui/material/Autocomplete';
 import { makeStyles } from '@mui/styles';
 

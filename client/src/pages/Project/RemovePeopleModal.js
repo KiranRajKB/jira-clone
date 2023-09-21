@@ -4,8 +4,8 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete'; // Material-UI DeleteIcon
-import CancelIcon from '@mui/icons-material/Cancel'; // Material-UI CancelIcon
+import DeleteIcon from '@mui/icons-material/Delete';
+import CancelIcon from '@mui/icons-material/Cancel';
 import axios from 'axios';
 
 const RemovePeopleModal = ({ isOpen, onClose, projectID, username }) => {
@@ -62,7 +62,7 @@ const RemovePeopleModal = ({ isOpen, onClose, projectID, username }) => {
           <Button
             variant="contained"
             color="secondary"
-            startIcon={<DeleteIcon />} // Add DeleteIcon as the start icon
+            startIcon={<DeleteIcon />}
             onClick={handleRemovePerson}
             disabled={isLoading}
           >

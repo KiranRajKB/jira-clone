@@ -19,7 +19,7 @@ function NavigationBar() {
     };
 
     const linkStyle = {
-        paddingRight: "20px", // Add horizontal padding
+        paddingRight: "20px",
     };
 
     return (

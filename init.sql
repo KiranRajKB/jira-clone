@@ -4,8 +4,6 @@ DROP TABLE IF EXISTS issues;
 DROP TABLE IF EXISTS project_user_role;
 DROP TABLE IF EXISTS Roles;
 DROP TABLE IF EXISTS projects;
-DROP TABLE IF EXISTS user_groups;
-DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS Users;
 
 
@@ -22,8 +20,8 @@ CREATE TABLE projects (
     project_id VARCHAR PRIMARY KEY NOT NULL,
     project_name VARCHAR NOT NULL,
     description TEXT NOT NULL,
-    owner_username VARCHAR NOT NULL,
-    FOREIGN KEY (owner_username) REFERENCES Users(username) ON DELETE SET NULL
+    owner_username VARCHAR NOT NULL DEFAULT 'admin',
+    FOREIGN KEY (owner_username) REFERENCES Users(username) ON DELETE SET DEFAULT
 );
 
 CREATE TABLE Roles (
@@ -51,13 +49,14 @@ CREATE TABLE project_user_role (
 CREATE TABLE issues (
     issue_id VARCHAR PRIMARY KEY NOT NULL,
     project_id VARCHAR NOT NULL,
-    reported_by VARCHAR NOT NULL,
+    reported_by VARCHAR NOT NULL DEFAULT 'admin',
     summary VARCHAR NOT NULL,
     description TEXT NOT NULL,
-    assignee VARCHAR NOT NULL,
+    assignee VARCHAR NOT NULL DEFAULT 'admin',
     status VARCHAR CHECK (status IN ('opened', 'in progress', 'completed', 'closed')) NOT NULL,
-    FOREIGN KEY (reported_by) REFERENCES Users(username) ON DELETE CASCADE,
-    FOREIGN KEY (project_id, assignee) REFERENCES project_user_role(project_id, username) ON DELETE CASCADE
+    FOREIGN KEY (project_id) REFERENCES Projects(project_id) on DELETE CASCADE,
+    FOREIGN KEY (reported_by) REFERENCES Users(username) ON DELETE SET DEFAULT,
+    FOREIGN KEY (assignee) REFERENCES Users(username) ON DELETE SET DEFAULT
 );
 
 CREATE TABLE issue_tags (

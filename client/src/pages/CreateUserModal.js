@@ -50,7 +50,7 @@ const CreateUserModal = ({ isOpen, onClose, setPeople }) => {
             if (response.status === 201) {
                 console.log('User created successfully');
                 onClose();
-                setPeople(oldPeople => [...oldPeople, formData]);
+                setPeople(oldPeople => [...oldPeople, {...formData, active: true}]);
                 setFormData({
                     username: '',
                     name: '',
@@ -63,13 +63,13 @@ const CreateUserModal = ({ isOpen, onClose, setPeople }) => {
                 });
             } else {
                 console.error('Failed to create user:', response.statusText);
-                toast.error('Username already exists', {
+                toast.error('Username or email already exists', {
                     autoClose: 1000,
                 });
             }
         } catch (error) {
             console.error('Error creating user:', error);
-            toast.error('Username already exists', {
+            toast.error('Username or email already exists', {
                 autoClose: 1000,
             });
         }

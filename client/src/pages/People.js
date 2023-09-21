@@ -18,8 +18,8 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import CreateUserModal from './CreateUserModal';
 import BulkUploadUsers from './BulkCreateUsersModal';
-import CheckIcon from '@mui/icons-material/Check'; // Import the Check icon from Material-UI icons
-import ClearIcon from '@mui/icons-material/Clear'; // Import the Clear icon from Material-UI icons
+import CheckIcon from '@mui/icons-material/Check';
+import ClearIcon from '@mui/icons-material/Clear';
 
 const People = () => {
     const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);

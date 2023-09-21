@@ -1167,6 +1167,7 @@ func getAllPeople(c *gin.Context) {
 				"username": username,
 				"name":     name,
 				"email":    email,
+				"active":   true,
 			}
 			people = append(people, person)
 		}

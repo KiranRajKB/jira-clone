@@ -102,7 +102,7 @@ const BulkCreateIssueModal = ({ isOpen, onClose, projectID }) => {
                 <Button
                     variant="contained"
                     color="primary"
-                    startIcon={<CloudUploadIcon />} // Add CloudUploadIcon as the start icon
+                    startIcon={<CloudUploadIcon />}
                     onClick={handleUploadCsv}
                 >
                     Upload
