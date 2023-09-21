@@ -2,6 +2,9 @@
 
 Welcome to the Task Management System!
 
+To run this application, clone the repository and execute the below commmand:
+docker compose up
+
 An admin account is automatically created when you run this application for the first time. You can use the following credentials to access the admin account:
 
 **Admin Credentials:**
@@ -24,9 +27,9 @@ The navigation bar is divided into four essential sections, making it easy to na
 
     - Within each project, you'll discover a comprehensive list of issues.
 
-3. **People:** Access information about all active users, excluding those who are deactivated. Admins have the ability to delete and deactivate users.
-
-    - When a user is deleted, all projects they created are also removed.
+3. **People:** Access information about all active users, excluding those who are deactivated. 
+Admin has the ability to delete and deactivate users.
+    - When a user is deleted, the projects they created, the issues they created, and the issues that were assigned to them will be transferred to Admin.
 
     - Deactivated users remain in existing projects but are hidden from searches. They cannot log in or be assigned any issues.
 
@@ -47,14 +50,16 @@ When you open a project, you'll find the following sections in the sidebar:
         ```
         ReportedBy,Summary,Description,Assignee,Status,Tags
         ```
+        The status can be any one of the following:
+            'opened', 'in progress', 'completed', 'closed'
 
-- **People:** This section lists all active users who have access to the project and details their roles within the project.
+- **People:** This section lists all active users who have access to the project and details their roles within the project. If you have 'Owner' role in the project, you will be able to add people to the project.
 
 - **Roles:** Roles play a pivotal role in defining user permissions within a project. These permissions include:
 
     - Create issue
     - Edit issue (note: changing the status requires 'transition issue' permission)
-    - Transition issue (ability to change status to opened, in progress, or completed; changing status to 'closed' requires 'close issue' permission)
+    - Transition issue (ability to change status to 'opened', 'in progress', or 'completed'; changing status to 'closed' requires 'close issue' permission)
     - Close issue
     - Delete issue
     - Assignable (can be assigned issues)
@@ -65,12 +70,10 @@ When you open a project, you'll find the following sections in the sidebar:
 
     - Adding people to the project
     - Removing people from the project (excluding admin)
+    - Creating custom roles in the project
     - Deleting the entire project
 
-This README provides a comprehensive overview of the Task Management System. Use this information to effectively manage projects, users, and roles within the system.
-
+**Note:** For CSV file formats and samples (users.csv and issues.csv), please refer to the project files.
 ---
 
-
-**Note:** For CSV file formats and samples (users.csv and issues.csv), please refer to the project files.
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/M4NvrXuV)
