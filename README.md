@@ -3,8 +3,9 @@
 Welcome to the Task Management System!
 
 To run this application, clone the repository and execute the below commmand:
+```
 docker compose up
-
+```
 An admin account is automatically created when you run this application for the first time. You can use the following credentials to access the admin account:
 
 **Admin Credentials:**
