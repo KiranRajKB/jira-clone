@@ -16,7 +16,7 @@ import (
 )
 
 var db *sql.DB
-var jwtKey = []byte("your-secret-key")
+var jwtKey = []byte("2b0f17b3e1d4a8f9c76d092f5a17e1c3a4087a3707192623cbaf7c24cf4e1b9")
 var contextKeyUsername = "username"
 
 const TOKEN_EXPIRY_IN_MINUTES = 100
